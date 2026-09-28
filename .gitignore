@@ -1,0 +1,11 @@
+﻿dist/
+release/
+test-data/
+*.user
+*.suo
+.vs/
+.vscode/
+*.log
+*.tmp
+.env
+.env.*
