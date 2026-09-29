@@ -39,6 +39,18 @@ static class SkinTests {
   return null;
  }
 
+ static Button FindSave(DependencyObject root) {
+  var b = root as Button;
+  var text = b == null ? null : b.Content as TextBlock;
+  if (text != null && text.Text == "保存任务") return b;
+  foreach (object child in LogicalTreeHelper.GetChildren(root)) {
+   var node = child as DependencyObject;
+   if (node == null) continue;
+   var found = FindSave(node);
+   if (found != null) return found;
+  }
+  return null;
+ }
  static void RunSta(Action<bool, string> check) {
   var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
   string dir = Path.Combine(Path.GetTempPath(), "KoraSkinTests-" + Guid.NewGuid().ToString("N"));
@@ -87,6 +99,23 @@ static class SkinTests {
     var field = new Controls.DateField(monday);
     check(field != null && Controls.Segmented(new[] { "a", "b" }, 0, null) != null, "Controls build: " + label);
    }
+  }
+  // An imported backup can contain more categories than the editor's built-in choices.
+  // Saving through the actual dialog must preserve an off-screen or unnamed category.
+  store.Update(s => {
+   s.Tasks.Clear();
+   foreach (string name in new[] { "分组一", "分组二", "分组三", "分组四", "分组五", "分组六", "分组七", "" })
+    s.Tasks.Add(new TaskItem { Title = "保留分组", Group = name, Days = new List<int> { 1 } });
+  });
+  foreach (var task in store.Read().Tasks) {
+   var edit = new Editor(null, store, task, monday);
+   edit.Loaded += delegate {
+    var save = FindSave(edit);
+    if (save == null) { edit.Close(); throw new Exception("Editor save button missing"); }
+    save.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+   };
+   check(edit.ShowDialog() == true && store.Read().Tasks.First(t => t.Id == task.Id).Group == task.Group,
+    "Editor save preserves imported category: " + (task.Group == "" ? "unnamed" : task.Group));
   }
   try { app.Shutdown(); } catch (InvalidOperationException) { }
  }

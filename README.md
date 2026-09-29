@@ -14,6 +14,12 @@ Kora Desk 是一款原生 Windows 桌面清单工具。一个安静的小组件�
 
 内置**五种界面风格**，每种都有浅色和深色：macOS、Windows 11 Fluent、Material 3 Expressive、IBM Carbon、点阵仪表。在偏好设置里随时切换，管理窗口和桌面组件会一起更换。名称保留字母 **K**，中文 **刻序**，意为把日常一点点安排好。
 
+## 界面预览
+
+![macOS 浅色界面](docs/assets/themes/mac-light.png)
+
+[查看五套风格的浅色、深色与桌面组件预览 →](docs/THEMES.md)
+
 ## 界面风格
 
 | 风格 | 特点 |

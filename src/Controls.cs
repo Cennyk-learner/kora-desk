@@ -16,7 +16,7 @@ namespace Kora {
  public static class Controls {
   public static FrameworkElement Segmented(string[] items, int selected, Action<int> changed) {
    var s = Skin.Current;
-   var row = new StackPanel { Orientation = Orientation.Horizontal };
+   var row = new WrapPanel { Orientation = Orientation.Horizontal };
    var buttons = new List<Button>();
    int current = selected;
    Action paint = delegate {
@@ -201,8 +201,9 @@ namespace Kora {
    ResizeMode = ResizeMode.NoResize;
    ShowInTaskbar = false;
    WindowStartupLocation = WindowStartupLocation.CenterOwner;
-   foreach (var g in store.Read().Tasks.Select(t => t.Group).Distinct()) if (!string.IsNullOrEmpty(g) && !groups.Contains(g) && groups.Count < 6) groups.Add(g);
-   group = task == null ? 0 : Math.Max(0, groups.IndexOf(task.Group));
+   foreach (var g in store.Read().Tasks.Select(t => t.Group).Distinct()) if (!groups.Contains(g)) groups.Add(g);
+   if (task != null && !groups.Contains(task.Group)) groups.Add(task.Group);
+   group = task == null ? 0 : groups.IndexOf(task.Group);
    bool isOnce = task != null && !string.IsNullOrEmpty(task.OnceDate);
    repeat = isOnce ? 1 : 0;
 
@@ -227,7 +228,7 @@ namespace Kora {
    note = new TextBox { Text = task == null ? "" : task.Note, MaxLength = 300, Height = 74, TextWrapping = TextWrapping.Wrap, AcceptsReturn = true };
    body.Children.Add(note);
    body.Children.Add(s.Label("分组"));
-   groupPick = Controls.Segmented(groups.ToArray(), group, i => group = i);
+   groupPick = Controls.Segmented(groups.Select(g => string.IsNullOrEmpty(g) ? "未分组" : g).ToArray(), group, i => group = i);
    body.Children.Add(groupPick);
    body.Children.Add(s.Label("重复方式"));
    repeatPick = Controls.Segmented(new[] { "每周重复", "仅指定日期" }, repeat, i => { repeat = i; UpdateMode(); });

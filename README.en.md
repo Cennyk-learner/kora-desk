@@ -22,6 +22,12 @@ Keep today's checklist on your desktop. Plan recurring routines in a separate wi
 
 Appearance can follow Windows, or be fixed to light or dark. On Windows, `scripts\preview.ps1` renders every style and appearance (three planner pages and the widget) to `dist\previews`.
 
+## Preview
+
+![macOS light planner](docs/assets/themes/mac-light.png)
+
+[View all five styles, both appearances, and their widgets →](docs/THEMES.md)
+
 ## Get started
 
 1. Download the Windows x64 ZIP from Releases and extract the entire archive.
