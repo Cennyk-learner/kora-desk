@@ -9,7 +9,8 @@ New-Item -ItemType Directory -Path $out -Force | Out-Null
 $refs = @('System.dll','System.Xml.dll','System.Core.dll','System.Runtime.Serialization.dll','System.Xaml.dll','System.Windows.Forms.dll','System.Drawing.dll') | ForEach-Object { '/r:' + (Join-Path $framework $_) }
 $refs += @('WindowsBase.dll','PresentationCore.dll','PresentationFramework.dll') | ForEach-Object { '/r:' + (Join-Path $wpf $_) }
 $common = @('/nologo','/utf8output','/optimize+','/platform:x64','/warn:4') + $refs
-& $csc @common /target:library "/out:$out\Kora.Core.dll" "$root\src\Core.cs" "$root\src\Ui.cs" "$root\src\DesktopHost.cs"
+$coreSources = Get-ChildItem -LiteralPath "$root\src" -Filter *.cs | Where-Object { $_.Name -notin @('Manager.cs','Widget.cs') } | ForEach-Object { $_.FullName }
+& $csc @common /target:library "/out:$out\Kora.Core.dll" @coreSources
 if ($LASTEXITCODE -ne 0) { throw 'Core build failed' }
 foreach ($app in @(@('Kora','Manager'),@('Kora.Widget','Widget'))) {
   & $csc @common /target:winexe "/win32icon:$root\docs\assets\Kora.ico" "/win32manifest:$root\src\app.manifest" "/r:$out\Kora.Core.dll" "/out:$out\$($app[0]).exe" "$root\src\$($app[1]).cs"
@@ -17,10 +18,12 @@ foreach ($app in @(@('Kora','Manager'),@('Kora.Widget','Widget'))) {
   Copy-Item -LiteralPath "$root\src\App.config" -Destination "$out\$($app[0]).exe.config" -Force
 }
 if ($Test) {
-  & $csc @common /target:exe "/r:$out\Kora.Core.dll" "/out:$out\Kora.Tests.exe" "$root\tests\Tests.cs"
+  & $csc @common /define:WPF /target:exe "/r:$out\Kora.Core.dll" "/out:$out\Kora.Tests.exe" "$root\tests\Tests.cs" "$root\tests\SkinTests.cs"
   if ($LASTEXITCODE -ne 0) { throw 'Test build failed' }
   & "$out\Kora.Tests.exe"
   if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }
 }
 Copy-Item -LiteralPath "$root\docs\assets\Kora.ico" -Destination "$out\Kora.ico" -Force
+New-Item -ItemType Directory -Path "$out\fonts" -Force | Out-Null
+Copy-Item -Path "$root\assets\fonts\*" -Destination "$out\fonts" -Force
 Write-Host "Build complete: $out"

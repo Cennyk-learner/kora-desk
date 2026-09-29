@@ -24,6 +24,9 @@ namespace Kora {
   [DataMember] public bool AlwaysOnTop;
   [DataMember] public double X = -9999;
   [DataMember] public double Y = -9999;
+  // Files written by 1.0 have neither field, and the JSON serializer skips constructors, so both may be null.
+  [DataMember] public string Theme;
+  [DataMember] public string Appearance;
  }
  [DataContract] public class State {
   [DataMember] public int Version = 1;
@@ -37,7 +40,12 @@ namespace Kora {
  public static class Dates {
   public static readonly int[] Order = {1,2,3,4,5,6,0};
   public static readonly string[] Short = {"周日","周一","周二","周三","周四","周五","周六"};
+  public static readonly string[] Long = {"星期日","星期一","星期二","星期三","星期四","星期五","星期六"};
   public static string Key(DateTime day) { return day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture); }
+  public static DateTime Parse(string key) { return DateTime.ParseExact(key, "yyyy-MM-dd", CultureInfo.InvariantCulture); }
+  // Formatting goes through the invariant culture so a Buddhist or Hijri system calendar cannot change the year or day shown.
+  public static string MonthDay(DateTime day) { return day.Month.ToString(CultureInfo.InvariantCulture) + "月" + day.Day.ToString(CultureInfo.InvariantCulture) + "日"; }
+  public static string Number(DateTime day) { return day.Day.ToString("00", CultureInfo.InvariantCulture); }
   public static DateTime Monday(DateTime day) { return day.Date.AddDays(-((int)day.DayOfWeek + 6) % 7); }
  }
  public static class Preset {
@@ -110,10 +118,12 @@ namespace Kora {
    }
    foreach(var key in s.Done) if(key==null || key.Length>80 || key.Length<12 || key[10]!='/' || !DateTime.TryParseExact(key.Substring(0,10),"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out date)) throw new InvalidDataException("完成记录格式无效。");
    if(double.IsNaN(s.Settings.X)||double.IsInfinity(s.Settings.X)||double.IsNaN(s.Settings.Y)||double.IsInfinity(s.Settings.Y)) throw new InvalidDataException("组件位置无效。");
+   if((s.Settings.Theme!=null&&s.Settings.Theme.Length>24)||(s.Settings.Appearance!=null&&s.Settings.Appearance.Length>24)) throw new InvalidDataException("外观设置无效。");
   }
  }
  public static class Launch {
-  public static void App(string name) { Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,name)){UseShellExecute=true}); }
+  public static string BaseDirectory { get { return AppDomain.CurrentDomain.BaseDirectory; } }
+  public static void App(string name) { Process.Start(new ProcessStartInfo(Path.Combine(BaseDirectory,name)){UseShellExecute=true}); }
   public static void Folder(string path) { Process.Start(new ProcessStartInfo("explorer.exe", "\""+path+"\""){UseShellExecute=true}); }
  }
 }

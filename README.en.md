@@ -6,11 +6,21 @@
 
 **A minimal, offline Windows task widget with a separate planner.**
 
-Keep today's checklist on your desktop. Plan recurring routines in a separate window, then close it and get on with your day. Kora Desk combines a restrained, macOS-inspired appearance with native Windows WPF controls.
+Keep today's checklist on your desktop. Plan recurring routines in a separate window, then close it and get on with your day. Kora Desk ships with **five interface styles**, each in light and dark: macOS, Windows 11 Fluent, Material 3 Expressive, IBM Carbon and a dot-matrix instrument look. Pick one in Preferences; the planner and the widget change together.
 
 [Download for Windows](https://github.com/Cennyk-learner/kora-desk/releases/latest) · [Report an issue](https://github.com/Cennyk-learner/kora-desk/issues)
 
-![Daily planner](docs/assets/manager.png)
+## Styles
+
+| Style | What it looks like |
+|---|---|
+| **macOS** (default) | Tinted sidebar with colored icons, round check boxes, a large title with the open-task count, grouped rounded lists. Light card widget. |
+| **Fluent · Mica** | Windows 11 language: Mica base, rounded content layer, navigation pane with Preferences pinned to the bottom, a progress ring. |
+| **Material 3 Expressive** | Heavy headline, wavy progress, cookie-shaped badge, week buttons that become pills, segmented list. |
+| **IBM Carbon** | Header and side navigation, three data tiles, tasks as a table, square corners, dense. |
+| **Dot matrix** | Dot-font numerals, one row of dots for progress, a single red signal color, dotted rules. Black widget. |
+
+Appearance can follow Windows, or be fixed to light or dark. On Windows, `scripts\preview.ps1` renders every style and appearance (three planner pages and the widget) to `dist\previews`.
 
 ## Get started
 
@@ -18,10 +28,11 @@ Keep today's checklist on your desktop. Plan recurring routines in a separate wi
 2. Run `Kora.exe` to open the planner and desktop widget.
 3. Check tasks off directly on the widget. Closing the planner leaves the widget running.
 
-Requires Windows 10/11 x64 and .NET Framework 4.8 or later. Keep the two executables, shared DLL, configuration files, and icon together. The release is portable and currently unsigned; SHA-256 checksums are provided.
+Requires Windows 10/11 x64 and .NET Framework 4.8 or later. Keep the two executables, shared DLL, configuration files, icon and the `fonts` folder together. The release is portable and currently unsigned; SHA-256 checksums are provided.
 
 ## Small surface, useful details
 
+- **Five interface styles**, light or dark, following Windows if you like.
 - **Desktop layer by default**, with an optional always-on-top mode.
 - **Independent processes** for the planner and widget. Run `Kora.Widget.exe` on its own if preferred.
 - Editable **weekly routines** and **one-off dated tasks**.

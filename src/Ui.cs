@@ -1,63 +1,333 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
+using Shapes = System.Windows.Shapes;
 
 namespace Kora {
  public static class Ui {
-  public static Brush Ink=B("#263831"), Muted=B("#7C8780"), Accent=B("#557665"), Line=B("#E7EBE5"), Paper=B("#FAFBF8"), Soft=B("#EEF2EC");
-  public static Brush B(string hex) { return (Brush)new BrushConverter().ConvertFromString(hex); }
-  public static void Init(Application app) {
-   app.Resources=(ResourceDictionary)XamlReader.Parse(@"<ResourceDictionary xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
-<Style TargetType='Window'><Setter Property='FontFamily' Value='Segoe UI, Microsoft YaHei UI'/><Setter Property='FontSize' Value='14'/><Setter Property='Foreground' Value='#263831'/><Setter Property='UseLayoutRounding' Value='True'/></Style>
-<Style TargetType='Button'><Setter Property='Background' Value='Transparent'/><Setter Property='Foreground' Value='#56675D'/><Setter Property='Padding' Value='14,9'/><Setter Property='BorderThickness' Value='0'/><Setter Property='Cursor' Value='Hand'/><Setter Property='HorizontalContentAlignment' Value='Center'/><Setter Property='VerticalContentAlignment' Value='Center'/><Setter Property='Template'><Setter.Value><ControlTemplate TargetType='Button'><Border x:Name='bd' Background='{TemplateBinding Background}' CornerRadius='10' Padding='{TemplateBinding Padding}'><ContentPresenter HorizontalAlignment='{TemplateBinding HorizontalContentAlignment}' VerticalAlignment='Center'/></Border><ControlTemplate.Triggers><Trigger Property='IsMouseOver' Value='True'><Setter TargetName='bd' Property='Opacity' Value='0.72'/></Trigger><Trigger Property='IsKeyboardFocused' Value='True'><Setter TargetName='bd' Property='BorderBrush' Value='#557665'/><Setter TargetName='bd' Property='BorderThickness' Value='1'/></Trigger><Trigger Property='IsEnabled' Value='False'><Setter Property='Opacity' Value='0.4'/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
-<Style TargetType='CheckBox'><Setter Property='Cursor' Value='Hand'/><Setter Property='VerticalContentAlignment' Value='Center'/><Setter Property='Template'><Setter.Value><ControlTemplate TargetType='CheckBox'><Grid Background='Transparent'><Grid.ColumnDefinitions><ColumnDefinition Width='28'/><ColumnDefinition Width='*'/></Grid.ColumnDefinitions><Border x:Name='box' Width='20' Height='20' CornerRadius='7' BorderThickness='1.4' BorderBrush='#BDC9BF' VerticalAlignment='Center'><Path x:Name='tick' Data='M 4,9 L 8,13 L 15,5' Stroke='White' StrokeThickness='1.7' StrokeStartLineCap='Round' StrokeEndLineCap='Round' Visibility='Collapsed'/></Border><ContentPresenter Grid.Column='1' Margin='8,0,0,0' VerticalAlignment='Center'/></Grid><ControlTemplate.Triggers><Trigger Property='IsChecked' Value='True'><Setter TargetName='box' Property='Background' Value='#557665'/><Setter TargetName='box' Property='BorderBrush' Value='#557665'/><Setter TargetName='tick' Property='Visibility' Value='Visible'/></Trigger><Trigger Property='IsMouseOver' Value='True'><Setter TargetName='box' Property='BorderBrush' Value='#557665'/></Trigger><Trigger Property='IsKeyboardFocused' Value='True'><Setter TargetName='box' Property='BorderThickness' Value='2.5'/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
-<Style TargetType='TextBox'><Setter Property='Padding' Value='12,10'/><Setter Property='BorderBrush' Value='#DDE4DC'/><Setter Property='BorderThickness' Value='1'/><Setter Property='Background' Value='#FFFFFF'/><Setter Property='Foreground' Value='#263831'/><Setter Property='Template'><Setter.Value><ControlTemplate TargetType='TextBox'><Border x:Name='bd' Background='{TemplateBinding Background}' BorderBrush='{TemplateBinding BorderBrush}' BorderThickness='1' CornerRadius='8'><ScrollViewer x:Name='PART_ContentHost' Margin='{TemplateBinding Padding}'/></Border><ControlTemplate.Triggers><Trigger Property='IsKeyboardFocused' Value='True'><Setter TargetName='bd' Property='BorderBrush' Value='#557665'/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
-<Style TargetType='ScrollViewer'><Setter Property='VerticalScrollBarVisibility' Value='Auto'/><Setter Property='HorizontalScrollBarVisibility' Value='Disabled'/><Setter Property='PanningMode' Value='VerticalOnly'/></Style>
-</ResourceDictionary>");
+  static readonly Dictionary<string, Brush> brushes = new Dictionary<string, Brush>();
+  static readonly Dictionary<string, Style> styles = new Dictionary<string, Style>();
+  static readonly Dictionary<string, Geometry> geometries = new Dictionary<string, Geometry>();
+
+  // Icons are drawn on a 24 x 24 grid with round strokes, so they scale like the SVG originals.
+  static readonly Dictionary<string, string> icons = new Dictionary<string, string> {
+   {"today", "M3.5,12 A8.5,8.5 0 1 1 20.5,12 A8.5,8.5 0 1 1 3.5,12 M12,7.5 L12,12 L15,14"},
+   {"week", "M6.5,5.5 L17.5,5.5 A2.5,2.5 0 0 1 20,8 L20,17 A2.5,2.5 0 0 1 17.5,19.5 L6.5,19.5 A2.5,2.5 0 0 1 4,17 L4,8 A2.5,2.5 0 0 1 6.5,5.5 Z M4,10 L20,10 M8.5,3.5 L8.5,6.5 M15.5,3.5 L15.5,6.5"},
+   {"settings", "M4,7 L13,7 M17,7 L20,7 M4,17 L7,17 M11,17 L20,17 M13,7 A2,2 0 1 1 17,7 A2,2 0 1 1 13,7 M7,17 A2,2 0 1 1 11,17 A2,2 0 1 1 7,17"},
+   {"plus", "M12,5 L12,19 M5,12 L19,12"},
+   {"dots", "M5,12 L5.01,12 M12,12 L12.01,12 M19,12 L19.01,12"},
+   {"lock", "M7,11 L17,11 A2,2 0 0 1 19,13 L19,18 A2,2 0 0 1 17,20 L7,20 A2,2 0 0 1 5,18 L5,13 A2,2 0 0 1 7,11 Z M8,11 L8,8 A4,4 0 0 1 16,8 L16,11"},
+   {"left", "M14,6 L8,12 L14,18"},
+   {"right", "M10,6 L16,12 L10,18"},
+   {"min", "M5,12 L19,12"},
+   {"max", "M7.5,6 L16.5,6 A1.5,1.5 0 0 1 18,7.5 L18,16.5 A1.5,1.5 0 0 1 16.5,18 L7.5,18 A1.5,1.5 0 0 1 6,16.5 L6,7.5 A1.5,1.5 0 0 1 7.5,6 Z"},
+   {"close", "M6,6 L18,18 M18,6 L6,18"},
+   {"search", "M4.5,11 A6.5,6.5 0 1 1 17.5,11 A6.5,6.5 0 1 1 4.5,11 M20,20 L15.5,15.5"},
+   {"out", "M7,17 L17,7 M9,7 L17,7 L17,15"},
+   {"check", "M5,12.5 L9.5,17 L19,7.5"}
+  };
+
+  public static Brush Br(string hex) {
+   Brush b;
+   if (brushes.TryGetValue(hex, out b)) return b;
+   if (hex == "transparent") b = Brushes.Transparent;
+   else { b = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex)); b.Freeze(); }
+   brushes[hex] = b;
+   return b;
   }
-  public static TextBlock Text(string text,double size,Brush brush=null) { return new TextBlock{Text=text,FontSize=size,Foreground=brush??Ink,TextWrapping=TextWrapping.Wrap}; }
-  public static Button Button(string text,Action action,bool primary=false) { var b=new Button{Content=text}; if(primary){b.Background=Accent;b.Foreground=Brushes.White;} b.Click+=delegate { Guard(action); }; return b; }
-  public static void Guard(Action action) { try { action(); } catch(Exception e) { MessageBox.Show(e.Message,"Kora Desk · 操作未完成",MessageBoxButton.OK,MessageBoxImage.Warning); } }
-  public static void Label(Panel panel,string text) { var t=Text(text,12,Muted); t.Margin=new Thickness(0,18,0,8); panel.Children.Add(t); }
-  public static Border Card(UIElement child,Thickness padding) { return new Border{Background=Brushes.White,BorderBrush=Line,BorderThickness=new Thickness(1),CornerRadius=new CornerRadius(16),Padding=padding,Child=child}; }
-  public static Border WindowFrame(Window w,UIElement child,double radius=22) { w.WindowStyle=WindowStyle.None;w.AllowsTransparency=true;w.Background=Brushes.Transparent; var b=new Border{Background=Paper,CornerRadius=new CornerRadius(radius),BorderBrush=B("#DCE3DA"),BorderThickness=new Thickness(1),Margin=new Thickness(12),Child=child,Effect=new DropShadowEffect{Color=Colors.Black,BlurRadius=20,ShadowDepth=3,Opacity=0.12}}; b.Child=null;var clipHost=new Grid();clipHost.Children.Add(child);b.Child=clipHost;clipHost.SizeChanged+=delegate{clipHost.Clip=new RectangleGeometry(new Rect(0,0,clipHost.ActualWidth,clipHost.ActualHeight),radius-1,radius-1);};w.Content=b;return b; }
-  public static void Drag(Window w,UIElement grip) { grip.MouseLeftButtonDown+=delegate(object sender,MouseButtonEventArgs e){ if(e.ClickCount==1 && e.LeftButton==MouseButtonState.Pressed) w.DragMove(); }; }
-  public static void Snapshot(FrameworkElement element,string path) { element.UpdateLayout();var dpi=VisualTreeHelper.GetDpi(element);var bmp=new RenderTargetBitmap((int)Math.Ceiling(element.ActualWidth*dpi.DpiScaleX),(int)Math.Ceiling(element.ActualHeight*dpi.DpiScaleY),dpi.PixelsPerInchX,dpi.PixelsPerInchY,PixelFormats.Pbgra32);bmp.Render(element);var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bmp));using(var stream=File.Create(path))encoder.Save(stream); }
-  public static UIElement TaskRow(TaskItem task,bool done,Action<bool> toggle,Action edit,bool compact) {
-   var row=new Grid{Margin=new Thickness(0,3,0,3)}; row.ColumnDefinitions.Add(new ColumnDefinition()); if(edit!=null)row.ColumnDefinitions.Add(new ColumnDefinition{Width=GridLength.Auto});
-   var copy=new StackPanel();var title=Text(task.Title,compact?14:15,done?Muted:Ink);title.FontWeight=FontWeights.Medium;if(done)title.TextDecorations=TextDecorations.Strikethrough;copy.Children.Add(title);
-   if(!compact&&!string.IsNullOrWhiteSpace(task.Note)){var note=Text(task.Note,12,Muted);note.Margin=new Thickness(0,5,0,0);copy.Children.Add(note);}
-   var check=new CheckBox{Content=copy,IsChecked=done,Padding=new Thickness(0),VerticalContentAlignment=VerticalAlignment.Center,MinHeight=compact?39:43,ToolTip=task.Note};
-   System.Windows.Automation.AutomationProperties.SetName(check,task.Title);
-   check.Click+=delegate { Guard(delegate { toggle(check.IsChecked==true); }); };row.Children.Add(check);
-   if(edit!=null){var b=Button("···",edit);b.FontSize=20;b.Padding=new Thickness(12,4,12,4);b.VerticalAlignment=VerticalAlignment.Center;b.ToolTip="编辑任务";Grid.SetColumn(b,1);row.Children.Add(b);}return row;
+
+  public static FontFamily Font(string spec) { return new FontFamily(spec); }
+
+  // Fonts shipped next to the executable (currently the dot-matrix face). Falls back to the given system family.
+  public static FontFamily Bundled(string file, string family, string fallback) {
+   try {
+    string folder = Path.Combine(Launch.BaseDirectory, "fonts");
+    if (File.Exists(Path.Combine(folder, file))) return new FontFamily(new Uri("file:///" + folder.Replace('\\', '/') + "/"), "./#" + family);
+   } catch (Exception) { }
+   return new FontFamily(fallback);
   }
- }
- public class Editor : Window {
-  TextBox title,note;ComboBox group,repeat;DatePicker once;CheckBox[] weekdays=new CheckBox[7];TaskItem original;Store store;StackPanel days;Button delete;
-  public Editor(Window owner,Store storage,TaskItem task,DateTime selected) {
-   Owner=owner;store=storage;original=task;Title=task==null?"新建任务":"编辑任务";Width=500;Height=630;ResizeMode=ResizeMode.NoResize;WindowStartupLocation=WindowStartupLocation.CenterOwner;
-   var body=new StackPanel{Margin=new Thickness(28)};var header=new DockPanel();var close=Ui.Button("×",Close);close.FontSize=20;DockPanel.SetDock(close,Dock.Right);header.Children.Add(close);var heading=Ui.Text(Title,23);heading.FontWeight=FontWeights.SemiBold;header.Children.Add(heading);body.Children.Add(header);
-   Ui.Label(body,"任务名称");title=new TextBox{Text=task==null?"":task.Title,MaxLength=80};body.Children.Add(title);
-   Ui.Label(body,"一点备注（可选）");note=new TextBox{Text=task==null?"":task.Note,MaxLength=300,Height=70,TextWrapping=TextWrapping.Wrap,AcceptsReturn=true};body.Children.Add(note);
-   Ui.Label(body,"分组");group=new ComboBox{ItemsSource=new[]{"学习","健身","生活"},SelectedItem=task==null?"学习":task.Group,Padding=new Thickness(9)};if(group.SelectedIndex<0)group.SelectedIndex=2;body.Children.Add(group);
-   Ui.Label(body,"重复方式");repeat=new ComboBox{ItemsSource=new[]{"每周重复","仅指定日期"},SelectedIndex=task!=null&&!string.IsNullOrEmpty(task.OnceDate)?1:0,Padding=new Thickness(9)};body.Children.Add(repeat);
-   days=new StackPanel{Orientation=Orientation.Horizontal,Margin=new Thickness(0,16,0,12)};
-   foreach(int i in Dates.Order){var c=new CheckBox{Content=Dates.Short[i].Substring(1),IsChecked=task==null||task.Days.Contains(i),Margin=new Thickness(0,0,11,0)}; weekdays[i]=c;days.Children.Add(c);}body.Children.Add(days);
-   once=new DatePicker{SelectedDate=task!=null&&!string.IsNullOrEmpty(task.OnceDate)?DateTime.ParseExact(task.OnceDate,"yyyy-MM-dd",null):selected,Margin=new Thickness(0,12,0,12)};body.Children.Add(once);repeat.SelectionChanged+=delegate{UpdateMode();};UpdateMode();
-   var hint=Ui.Text("修改重复规则会同步到每周计划。已有的每日勾选记录会保留。",12,Ui.Muted);hint.Margin=new Thickness(0,8,0,18);body.Children.Add(hint);
-   var actions=new DockPanel();delete=Ui.Button("删除任务",Delete);delete.Foreground=Ui.B("#A15F55");delete.Visibility=task==null?Visibility.Collapsed:Visibility.Visible;DockPanel.SetDock(delete,Dock.Left);actions.Children.Add(delete);var save=Ui.Button("保存任务",Save,true);save.HorizontalAlignment=HorizontalAlignment.Right;actions.Children.Add(save);body.Children.Add(actions);Ui.WindowFrame(this,body);Ui.Drag(this,heading);Loaded+=delegate{title.Focus();};
+
+  public static void Apply(Skin skin) {
+   Skin.Current = skin;
+   styles.Clear();
+   var app = Application.Current;
+   if (app == null) return;
+   var p = skin.P;
+   app.Resources = (ResourceDictionary)XamlReader.Parse(Xaml.Resources(skin.Body.Source, p.Text, p.Thumb, p.Input, p.InputLine, p.Accent, skin.InputRadius));
   }
-  void UpdateMode(){if(once==null)return;days.Visibility=repeat.SelectedIndex==0?Visibility.Visible:Visibility.Collapsed;once.Visibility=repeat.SelectedIndex==1?Visibility.Visible:Visibility.Collapsed;}
-  void Save(){var t=new TaskItem{Id=original==null?Guid.NewGuid().ToString("N"):original.Id,Title=title.Text.Trim(),Note=note.Text.Trim(),Group=(string)group.SelectedItem,Days=Dates.Order.Where(i=>weekdays[i].IsChecked==true).ToList(),OnceDate=repeat.SelectedIndex==1&&once.SelectedDate.HasValue?Dates.Key(once.SelectedDate.Value):""};if(repeat.SelectedIndex==1&&!once.SelectedDate.HasValue)throw new InvalidDataException("请选择日期。");store.Update(s=>{int i=s.Tasks.FindIndex(x=>x.Id==t.Id);if(i<0)s.Tasks.Add(t);else s.Tasks[i]=t;});DialogResult=true;}
-  void Delete(){if(MessageBox.Show(this,"删除“"+original.Title+"”？历史完成记录会保留。","删除任务",MessageBoxButton.YesNo,MessageBoxImage.Question)!=MessageBoxResult.Yes)return;store.Update(s=>s.Tasks.RemoveAll(t=>t.Id==original.Id));DialogResult=true;}
+
+  static Style Cached(string key, Func<string> xaml) {
+   Style s;
+   if (!styles.TryGetValue(key, out s)) { s = (Style)XamlReader.Parse(xaml()); styles[key] = s; }
+   return s;
+  }
+  public static Style ButtonStyle(double radius) { return Cached("b" + radius + Skin.Current.Id + Skin.Current.Dark, () => Xaml.ButtonStyle(radius, Skin.Current.P.Accent)); }
+
+  public static TextBlock T(string text, double size, string color, FontWeight? weight = null, FontFamily font = null) {
+   return new TextBlock { Text = text, FontSize = size, Foreground = Br(color), TextWrapping = TextWrapping.Wrap, FontWeight = weight ?? FontWeights.Normal, FontFamily = font ?? Skin.Current.Body };
+  }
+  public static TextBlock Line(string text, double size, string color, FontWeight? weight = null, FontFamily font = null) {
+   var t = T(text, size, color, weight, font);
+   t.TextWrapping = TextWrapping.NoWrap;
+   t.TextTrimming = TextTrimming.CharacterEllipsis;
+   return t;
+  }
+
+  public static FrameworkElement Icon(string name, double size, string color, double stroke = 1.8) {
+   Geometry g;
+   if (!geometries.TryGetValue(name, out g)) { g = Geometry.Parse(icons[name]); g.Freeze(); geometries[name] = g; }
+   var path = new Shapes.Path { Data = g, Stroke = Br(color), StrokeThickness = stroke, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round, StrokeLineJoin = PenLineJoin.Round };
+   var canvas = new Canvas { Width = 24, Height = 24 };
+   canvas.Children.Add(path);
+   return new Viewbox { Width = size, Height = size, Child = canvas, IsHitTestVisible = false };
+  }
+
+  public static Button Btn(object content, Action action, string bg, string fg, double radius, Thickness padding, string hover = null, string tip = null) {
+   var b = new Button { Content = content, Padding = padding, Foreground = Br(fg), Background = Br(bg), Style = ButtonStyle(radius), HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center };
+   if (tip != null) { b.ToolTip = tip; System.Windows.Automation.AutomationProperties.SetName(b, tip); }
+   if (hover != null) {
+    b.MouseEnter += delegate { b.Background = Br(hover); };
+    b.MouseLeave += delegate { b.Background = Br(bg); };
+   }
+   if (action != null) b.Click += delegate { Guard(action); };
+   return b;
+  }
+
+  public static void Hover(Border b, string normal, string hover) {
+   b.Background = Br(normal);
+   b.MouseEnter += delegate { b.Background = Br(hover); };
+   b.MouseLeave += delegate { b.Background = Br(normal); };
+  }
+
+  public static void Guard(Action action) {
+   try { action(); } catch (Exception e) { Tell(null, "Kora Desk · 操作未完成", e.Message); }
+  }
+
+  public static ScrollViewer Scroll(UIElement child) {
+   return new ScrollViewer { Name = "PageScroll", Content = child, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, PanningMode = PanningMode.VerticalOnly };
+  }
+
+  public static Border Card(UIElement child, Thickness padding) {
+   var s = Skin.Current;
+   return new Border { Background = Br(s.P.Card), BorderBrush = Br(s.P.CardLine), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(s.CardRadius), Padding = padding, Child = child };
+  }
+
+  public static Shapes.Rectangle Rule(string color, double thickness, Thickness margin) {
+   return new Shapes.Rectangle { Height = thickness, Fill = Br(color), Margin = margin, IsHitTestVisible = false };
+  }
+
+  // ----- windows -----
+  public static void Chromeless(Window w) {
+   w.WindowStyle = WindowStyle.None;
+   w.AllowsTransparency = true;
+   w.Background = Brushes.Transparent;
+   w.UseLayoutRounding = true;
+  }
+  public static Border Frame(UIElement child, double radius, string fill, string border, double blur, double opacity) {
+   var host = new Grid();
+   host.Children.Add(child);
+   host.SizeChanged += delegate { host.Clip = new RectangleGeometry(new Rect(0, 0, host.ActualWidth, host.ActualHeight), Math.Max(0, radius - 1), Math.Max(0, radius - 1)); };
+   return new Border { Background = Br(fill), CornerRadius = new CornerRadius(radius), BorderBrush = Br(border), BorderThickness = new Thickness(1), Margin = new Thickness(12), Child = host, Effect = new DropShadowEffect { Color = Colors.Black, BlurRadius = blur, ShadowDepth = 3, Opacity = opacity } };
+  }
+  public static void Drag(Window w, UIElement grip) {
+   grip.MouseLeftButtonDown += delegate(object sender, MouseButtonEventArgs e) { if (e.ClickCount == 1 && e.LeftButton == MouseButtonState.Pressed) w.DragMove(); };
+  }
+  public static void Snapshot(FrameworkElement element, string path) {
+   element.UpdateLayout();
+   var dpi = VisualTreeHelper.GetDpi(element);
+   var bmp = new RenderTargetBitmap((int)Math.Ceiling(element.ActualWidth * dpi.DpiScaleX), (int)Math.Ceiling(element.ActualHeight * dpi.DpiScaleY), dpi.PixelsPerInchX, dpi.PixelsPerInchY, PixelFormats.Pbgra32);
+   bmp.Render(element);
+   var encoder = new PngBitmapEncoder();
+   encoder.Frames.Add(BitmapFrame.Create(bmp));
+   using (var stream = File.Create(path)) encoder.Save(stream);
+  }
+
+  // ----- checkbox rows -----
+  public static CheckBox Check(bool done, string name, Action<bool> toggle, bool inWidget = false) {
+   var s = Skin.Current;
+   var box = new CheckBox { IsChecked = done, Style = Cached("c" + s.Id + s.Dark + inWidget, inWidget ? (Func<string>)s.WidgetCheckXaml : s.CheckXaml), VerticalAlignment = VerticalAlignment.Center };
+   System.Windows.Automation.AutomationProperties.SetName(box, name);
+   box.Click += delegate {
+    bool value = box.IsChecked == true;
+    try { toggle(value); } catch (Exception e) { box.IsChecked = !value; Tell(null, "Kora Desk · 操作未完成", e.Message); }
+   };
+   return box;
+  }
+  // Makes the whole row toggle its check box, not just the box itself.
+  public static void RowClick(FrameworkElement row, CheckBox box) {
+   var panel = row as Panel;
+   var border = row as Border;
+   if (panel != null && panel.Background == null) panel.Background = Brushes.Transparent;
+   if (border != null && border.Background == null) border.Background = Brushes.Transparent;
+   row.Cursor = Cursors.Hand;
+   row.MouseLeftButtonUp += delegate(object sender, MouseButtonEventArgs e) {
+    var source = e.OriginalSource as DependencyObject;
+    if (source != null && IsInside(source, box)) return;
+    if (source != null && FindButton(source, row) != null) return;
+    box.IsChecked = !(box.IsChecked == true);
+    box.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+   };
+  }
+  // A click on another button inside the row (edit, menu) must not also toggle the task.
+  static Button FindButton(DependencyObject from, DependencyObject stop) {
+   while (from != null && !ReferenceEquals(from, stop)) {
+    var b = from as Button;
+    if (b != null) return b;
+    from = from is Visual ? VisualTreeHelper.GetParent(from) : LogicalTreeHelper.GetParent(from);
+   }
+   return null;
+  }
+  static bool IsInside(DependencyObject child, DependencyObject ancestor) {
+   while (child != null) {
+    if (ReferenceEquals(child, ancestor)) return true;
+    child = child is Visual ? VisualTreeHelper.GetParent(child) : LogicalTreeHelper.GetParent(child);
+   }
+   return false;
+  }
+
+  // ----- drawn elements -----
+  public static FrameworkElement Ring(double size, double thick, double p, string track, string bar) {
+   var c = new Canvas { Width = size, Height = size };
+   double r = (size - thick) / 2, mid = size / 2;
+   var back = new Shapes.Ellipse { Width = size - thick, Height = size - thick, Stroke = Br(track), StrokeThickness = thick };
+   Canvas.SetLeft(back, thick / 2); Canvas.SetTop(back, thick / 2);
+   c.Children.Add(back);
+   if (p >= 0.999) {
+    var full = new Shapes.Ellipse { Width = size - thick, Height = size - thick, Stroke = Br(bar), StrokeThickness = thick };
+    Canvas.SetLeft(full, thick / 2); Canvas.SetTop(full, thick / 2);
+    c.Children.Add(full);
+   } else if (p > 0) {
+    double a = 2 * Math.PI * p;
+    var figure = new PathFigure { StartPoint = new Point(mid, mid - r), IsClosed = false };
+    figure.Segments.Add(new ArcSegment(new Point(mid + r * Math.Sin(a), mid - r * Math.Cos(a)), new Size(r, r), 0, a > Math.PI, SweepDirection.Clockwise, true));
+    var geo = new PathGeometry();
+    geo.Figures.Add(figure);
+    c.Children.Add(new Shapes.Path { Data = geo, Stroke = Br(bar), StrokeThickness = thick, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round });
+   }
+   return c;
+  }
+
+  // Expressive progress: a wave over the finished part, a straight track with an end dot for the rest.
+  public static FrameworkElement Wave(double width, double p, string bar, string track, double height = 16) {
+   var c = new Canvas { Width = width, Height = height };
+   double mid = height / 2, end = width * p - 6;
+   if (end > 6) {
+    var figure = new PathFigure { StartPoint = new Point(4, mid), IsClosed = false };
+    var points = new PointCollection();
+    for (double x = 4; x <= end; x += 2) points.Add(new Point(x, mid + 4 * Math.Sin((x - 4) / 22 * 2 * Math.PI)));
+    figure.Segments.Add(new PolyLineSegment(points, true));
+    var geo = new PathGeometry();
+    geo.Figures.Add(figure);
+    c.Children.Add(new Shapes.Path { Data = geo, Stroke = Br(bar), StrokeThickness = 4, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round, StrokeLineJoin = PenLineJoin.Round });
+   }
+   double start = Math.Max(4, end + 12);
+   c.Children.Add(new Shapes.Line { X1 = start, Y1 = mid, X2 = width - 6, Y2 = mid, Stroke = Br(track), StrokeThickness = 4, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round });
+   var dot = new Shapes.Ellipse { Width = 5, Height = 5, Fill = Br(bar) };
+   Canvas.SetLeft(dot, width - 5.5); Canvas.SetTop(dot, mid - 2.5);
+   c.Children.Add(dot);
+   return c;
+  }
+
+  // Nine-lobed scalloped badge.
+  public static Shapes.Path Cookie(double size, string fill) {
+   var points = new PointCollection();
+   double half = size / 2, r = half * 0.9;
+   for (int i = 0; i <= 120; i++) {
+    double t = i / 120.0 * 2 * Math.PI, rr = r * (1 + 0.05 * Math.Cos(9 * t));
+    points.Add(new Point(half + rr * Math.Cos(t), half + rr * Math.Sin(t)));
+   }
+   var figure = new PathFigure { StartPoint = points[0], IsClosed = true, IsFilled = true };
+   figure.Segments.Add(new PolyLineSegment(points, true));
+   var geo = new PathGeometry();
+   geo.Figures.Add(figure);
+   return new Shapes.Path { Data = geo, Fill = Br(fill), Width = size, Height = size };
+  }
+
+  public static Brush DotGrid(string color, double pitch) {
+   var group = new DrawingGroup();
+   group.Children.Add(new GeometryDrawing(Brushes.Transparent, null, new RectangleGeometry(new Rect(0, 0, pitch, pitch))));
+   group.Children.Add(new GeometryDrawing(Br(color), null, new EllipseGeometry(new Point(pitch / 2, pitch / 2), 0.9, 0.9)));
+   var brush = new DrawingBrush(group) { TileMode = TileMode.Tile, Viewport = new Rect(0, 0, pitch, pitch), ViewportUnits = BrushMappingMode.Absolute, Viewbox = new Rect(0, 0, pitch, pitch), ViewboxUnits = BrushMappingMode.Absolute };
+   brush.Freeze();
+   return brush;
+  }
+
+  public static Shapes.Line Dashed(string color, double dash = 1, double gap = 3) {
+   return new Shapes.Line { X1 = 0, Y1 = 0, X2 = 1, Y2 = 0, Stretch = Stretch.Fill, Height = 1, Stroke = Br(color), StrokeThickness = 1, StrokeDashArray = new DoubleCollection(new double[] { dash, gap }), StrokeDashCap = PenLineCap.Round, VerticalAlignment = VerticalAlignment.Bottom, IsHitTestVisible = false };
+  }
+
+  // ----- layout helpers -----
+  static GridLength Len(string w) {
+   if (w == "auto") return GridLength.Auto;
+   if (w.EndsWith("*")) return new GridLength(w.Length == 1 ? 1 : double.Parse(w.TrimEnd('*'), System.Globalization.CultureInfo.InvariantCulture), GridUnitType.Star);
+   return new GridLength(double.Parse(w, System.Globalization.CultureInfo.InvariantCulture));
+  }
+  public static Grid Cols(params string[] widths) {
+   var g = new Grid();
+   foreach (var w in widths) g.ColumnDefinitions.Add(new ColumnDefinition { Width = Len(w) });
+   return g;
+  }
+  public static Grid Rows(params string[] heights) {
+   var g = new Grid();
+   foreach (var h in heights) g.RowDefinitions.Add(new RowDefinition { Height = Len(h) });
+   return g;
+  }
+  public static E At<E>(E element, int column, int row = 0) where E : UIElement {
+   Grid.SetColumn(element, column);
+   Grid.SetRow(element, row);
+   return element;
+  }
+  public static FrameworkElement Bar(double p, string track, string fill, double height, double radius) {
+   p = Math.Max(0, Math.Min(1, p));
+   var g = new Grid { Height = height };
+   g.Children.Add(new Border { Background = Br(track), CornerRadius = new CornerRadius(radius) });
+   var split = Cols(p.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "*", (1 - p).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "*");
+   split.Children.Add(new Border { Background = Br(fill), CornerRadius = new CornerRadius(radius) });
+   g.Children.Add(split);
+   return g;
+  }
+  public static Shapes.Ellipse Dot(double size, string color) { return new Shapes.Ellipse { Width = size, Height = size, Fill = Br(color) }; }
+
+  // Rebuilding a page throws away the scroll position and keyboard focus; this puts them back.
+  public sealed class Keep {
+   readonly double offset;
+   readonly string tag;
+   Keep(double offset, string tag) { this.offset = offset; this.tag = tag; }
+   public static Keep Take(DependencyObject root) {
+   double o = 0;
+   if (root != null) { var sv = Find<ScrollViewer>(root, x => x.Name == "PageScroll"); if (sv != null) o = sv.VerticalOffset; }
+   var focused = Keyboard.FocusedElement as FrameworkElement;
+   string t = focused == null ? null : focused.Tag as string;
+   bool byKeyboard = InputManager.Current.MostRecentInputDevice is KeyboardDevice;
+   return new Keep(o, byKeyboard && t != null && t.StartsWith("task:") ? t : null);
+   }
+   public void Restore(DependencyObject root, System.Windows.Threading.Dispatcher dispatcher, bool scroll) {
+    dispatcher.BeginInvoke(new Action(delegate {
+     if (scroll && offset > 0) { var sv = Find<ScrollViewer>(root, x => x.Name == "PageScroll"); if (sv != null) sv.ScrollToVerticalOffset(offset); }
+     if (tag != null) { var el = Find<FrameworkElement>(root, x => x.Tag as string == tag); if (el != null) el.Focus(); }
+    }), System.Windows.Threading.DispatcherPriority.Loaded);
+   }
+  }
+  static E Find<E>(DependencyObject root, Func<E, bool> match) where E : DependencyObject {
+   if (root is E && match((E)root)) return (E)root;
+   foreach (object child in LogicalTreeHelper.GetChildren(root)) {
+    var d = child as DependencyObject;
+    if (d == null) continue;
+    var found = Find(d, match);
+    if (found != null) return found;
+   }
+   return null;
+  }
+
+  public static void Tell(Window owner, string title, string message) { Dialogs.Show(owner, title, message, "好", null); }
+  public static bool Ask(Window owner, string title, string message, string yes, string no) { return Dialogs.Show(owner, title, message, yes, no); }
  }
 }

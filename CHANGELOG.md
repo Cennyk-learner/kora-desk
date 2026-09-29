@@ -1,0 +1,23 @@
+# Changelog
+
+## 1.1.0
+
+### New
+- Five interface styles: macOS (default), Windows 11 Fluent, Material 3 Expressive, IBM Carbon, and a dot-matrix instrument style. Each has a light and a dark version, and a matching desktop widget.
+- Appearance setting: follow Windows, light, or dark. Follows changes made while the app is running.
+- Preferences page lists the styles; the planner and the widget switch together.
+- `scripts/preview.ps1` renders every style and appearance to images. `--theme`, `--appearance`, `--page` and `--out` work with `--preview`.
+- Themed date field, choice control, menu and dialogs replace the native ones, which were unreadable in dark mode.
+
+### Fixed
+- The planner stopped following midnight after you had moved to another day or week; it now keeps following whenever you are looking at today.
+- Saving a task whose group came from an imported backup silently moved it to 生活. Every group in use is now offered in the editor.
+- The editor read a one-off task's saved date with the system calendar. On a Thai Buddhist or Hijri calendar the date picker showed the wrong year, and saving stored that wrong date. Dates now always use the Gregorian calendar.
+- A check-off that failed to save left the box ticked. It is put back and the error is shown.
+- Checking a task rebuilt the page and dropped keyboard focus and the scroll position. Both are kept.
+- The widget height ignored group headings, so a short list scrolled for no reason.
+- With no desktop layer available the widget was re-attached and moved every three seconds. It now retries at a slower pace and only when the desktop layer appears.
+- Finishing a drag re-applied the whole window mode and made the widget flicker.
+- Saving a task with an empty name showed a generic message. It now asks for a name.
+- The planner drew itself twice at startup.
+- Files written by 1.0 have no theme fields; they load with the default style.
