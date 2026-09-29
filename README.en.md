@@ -1,4 +1,4 @@
-﻿# Kora Desk
+# Kora Desk
 
 [简体中文](README.md) · English
 
@@ -58,7 +58,9 @@ Changing a recurrence rule changes which tasks are shown for past dates too. Com
 
 ## Compatibility notes
 
-Desktop attachment depends on Explorer's window structure rather than a documented Windows widget API. Alternative shells, desktop customization tools, and future Windows updates may affect it. The widget periodically attempts reattachment; use always-on-top mode if desktop attachment is unavailable. Restart the widget if it does not recover after an Explorer restart.
+Desktop mode keeps a native top-level window above Explorer's desktop and below ordinary apps. Switching modes no longer reparents the transparent WPF window. Explorer detection still depends on its window structure, so alternative shells, desktop customization tools, Show Desktop behavior, and future Windows versions require compatibility testing. Use always-on-top mode when desktop ordering is unavailable.
+
+Show Widget wakes the existing process. First launch of a downloaded unsigned executable may still show a Windows security prompt; Kora does not dismiss or disable these prompts.
 
 Reminders, a Pomodoro timer, automatic startup registration, cloud synchronization, and other platforms are not included in this release.
 

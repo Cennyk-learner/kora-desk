@@ -12,6 +12,18 @@ using System.Windows.Media.Imaging;
 using Shapes = System.Windows.Shapes;
 
 namespace Kora {
+ // Polling must not recursively open modal errors or repeat the same error every second.
+ public sealed class PollGuard {
+  bool busy;string lastError;readonly Action<Exception> report;
+  public PollGuard() : this(e=>Ui.Tell(null,"Kora Desk · 操作未完成",e.Message)) {}
+  public PollGuard(Action<Exception> reporter){report=reporter;}
+  public void Run(Action action){
+   if(busy)return;busy=true;
+   try{action();lastError=null;}
+   catch(Exception e){string key=e.GetType().FullName+":"+e.Message;if(key!=lastError){lastError=key;report(e);}}
+   finally{busy=false;}
+  }
+ }
  public static class Ui {
   static readonly Dictionary<string, Brush> brushes = new Dictionary<string, Brush>();
   static readonly Dictionary<string, Style> styles = new Dictionary<string, Style>();

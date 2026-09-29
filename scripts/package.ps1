@@ -1,4 +1,4 @@
-﻿param([string]$Version='1.1.0')
+﻿param([string]$Version='1.1.1')
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
 & "$PSScriptRoot\build.ps1" -Test

@@ -117,6 +117,7 @@ static class SkinTests {
    check(edit.ShowDialog() == true && store.Read().Tasks.First(t => t.Id == task.Id).Group == task.Group,
     "Editor save preserves imported category: " + (task.Group == "" ? "unnamed" : task.Group));
   }
+  DesktopTests.Run(store, check);
   try { app.Shutdown(); } catch (InvalidOperationException) { }
  }
 }

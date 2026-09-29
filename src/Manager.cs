@@ -15,6 +15,7 @@ namespace Kora {
   DateTime selected = DateTime.Today, lastToday = DateTime.Today, stamp;
   int page;
   DispatcherTimer timer;
+  readonly PollGuard polling = new PollGuard();
   EventWaitHandle wake;
 
   public Manager(Store storage, bool isPreview, int startPage) {
@@ -29,12 +30,15 @@ namespace Kora {
    Ui.Chromeless(this);
    Draw();
 
-   wake = new EventWaitHandle(false, EventResetMode.AutoReset, "Local\\KoraDesk.Manager.Wake");
+   wake = preview ? new EventWaitHandle(false, EventResetMode.AutoReset) : new EventWaitHandle(false, EventResetMode.AutoReset, Activation.Name("Manager")+".Wake");
    timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-   timer.Tick += delegate { Ui.Guard(Tick); };
+   timer.Tick += delegate { polling.Run(Tick); };
    timer.Start();
    Closed += delegate { timer.Stop(); wake.Dispose(); };
+   bool started = false;
    if (!preview) Loaded += delegate {
+    if (started) return;
+    started = true;
     Ui.Guard(() => Launch.App("Kora.Widget.exe"));
     if (store.RecoveryNotice != null) Ui.Tell(this, "数据恢复", store.RecoveryNotice);
    };
@@ -129,9 +133,9 @@ namespace Kora {
    Mutex mutex = null;
    try {
     bool first;
-    mutex = new Mutex(true, "Local\\KoraDesk.Manager", out first);
+    mutex = new Mutex(true, Activation.Name("Manager"), out first);
     if (!first && !preview) {
-     using (var e = EventWaitHandle.OpenExisting("Local\\KoraDesk.Manager.Wake")) e.Set();
+     Activation.WakeStarting("Manager");
      return 0;
     }
     Skins.ForcedTheme = Arg(args, "theme");

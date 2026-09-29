@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.1
+
+### Fixed
+- Switching from always-on-top to desktop mode could leave an invisible but clickable widget. Desktop mode now manages native top-level window ordering without reparenting the transparent WPF surface into Explorer. All five interface styles are retained.
+- Show Widget now signals an existing process before considering a launch. Rapid repeated requests and requests during startup are coalesced. Windows first-launch security prompts remain under the user's control.
+- Startup work runs once even if WPF raises Loaded again; polling errors cannot recursively open identical modal dialogs every second.
+- Development data directories have isolated activation channels. Preview rendering no longer consumes a running app's wake signal.
+
+### Verification
+- Added native window lifecycle checks for every style in light and dark, live widget mode synchronization and wake tests, and polling error recovery tests.
+
 ## 1.1.0
 
 ### New

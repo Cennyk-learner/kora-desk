@@ -123,7 +123,7 @@ namespace Kora {
  }
  public static class Launch {
   public static string BaseDirectory { get { return AppDomain.CurrentDomain.BaseDirectory; } }
-  public static void App(string name) { Process.Start(new ProcessStartInfo(Path.Combine(BaseDirectory,name)){UseShellExecute=true}); }
+  public static void App(string name) { Activation.Open(name); }
   public static void Folder(string path) { Process.Start(new ProcessStartInfo("explorer.exe", "\""+path+"\""){UseShellExecute=true}); }
  }
 }

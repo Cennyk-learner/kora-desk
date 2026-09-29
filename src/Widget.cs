@@ -15,6 +15,7 @@ namespace Kora {
   WidgetContext context;
   DesktopHost host;
   DispatcherTimer timer;
+  readonly PollGuard polling = new PollGuard();
   DateTime stamp, day = DateTime.Today;
   EventWaitHandle wake;
   Forms.NotifyIcon tray;
@@ -25,14 +26,14 @@ namespace Kora {
    state = store.Read();
    Title = "Kora Desk · 桌面组件";
    ResizeMode = ResizeMode.NoResize;
-   ShowInTaskbar = false;
+   ShowInTaskbar = Environment.GetEnvironmentVariable("KORA_DIAGNOSTICS") == "1";
    WindowStartupLocation = WindowStartupLocation.Manual;
    Left = 100; Top = 90;
    Ui.Chromeless(this);
    if (!preview) host = new DesktopHost(this, store);
-   wake = new EventWaitHandle(false, EventResetMode.AutoReset, "Local\\KoraDesk.Widget.Wake");
+   wake = preview ? new EventWaitHandle(false, EventResetMode.AutoReset) : new EventWaitHandle(false, EventResetMode.AutoReset, Activation.Name("Widget")+".Wake");
    timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-   timer.Tick += delegate { Ui.Guard(Tick); };
+   timer.Tick += delegate { polling.Run(Tick); };
    Loaded += delegate { Ui.Guard(() => Refresh(false)); timer.Start(); };
    Closed += delegate {
     timer.Stop();
@@ -99,8 +100,8 @@ namespace Kora {
    Height = Math.Min(SystemParameters.WorkArea.Height - 24, skin.WidgetHeight(tasks.Count, tasks.Select(t => t.Group).Distinct().Count()) + 24);
    Content = Ui.Frame(root, skin.WidgetRadius, skin.WidgetFill, skin.WidgetBorder, 24, skin.WidgetShadow);
    keep.Restore(root, Dispatcher, true);
-   if (host != null && context.Status != null) context.Status.Text = host.Status;
    if (host != null && (old.AlwaysOnTop != state.Settings.AlwaysOnTop || !host.IsAt(state.Settings))) host.Apply(state.Settings);
+   if (host != null && context.Status != null) context.Status.Text = host.Status;
   }
  }
 
@@ -115,9 +116,9 @@ namespace Kora {
    Mutex mutex = null;
    try {
     bool first;
-    mutex = new Mutex(true, "Local\\KoraDesk.Widget", out first);
+    mutex = new Mutex(true, Activation.Name("Widget"), out first);
     if (!first && !preview) {
-     using (var e = EventWaitHandle.OpenExisting("Local\\KoraDesk.Widget.Wake")) e.Set();
+     Activation.WakeStarting("Widget");
      return 0;
     }
     Skins.ForcedTheme = Arg(args, "theme");

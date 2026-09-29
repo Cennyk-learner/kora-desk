@@ -314,7 +314,7 @@ namespace Kora {
    data.Children.Add(s.Secondary("打开数据文件夹", c.OpenFolder));
    root.Children.Add(Section(s, "属于你的记录", "任务与完成记录仅保存在这台电脑。无需账号，没有广告，应用不连接网络。自动保留上一次保存的备份。", data));
 
-   var about = Ui.T("Kora Desk · 刻序\nv1.1.0  /  一点一点，也是向前。\n拖动组件顶部可移动位置；右键托盘图标可隐藏组件或退出。", 12, s.P.Faint);
+   var about = Ui.T("Kora Desk · 刻序\nv1.1.1  /  一点一点，也是向前。\n拖动组件顶部可移动位置；右键托盘图标可隐藏组件或退出。", 12, s.P.Faint);
    about.Margin = new Thickness(3, 10, 0, 0);
    root.Children.Add(about);
    return root;
