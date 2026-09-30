@@ -1,0 +1,144 @@
+/* Five skins × light/dark. A skin is only tokens plus a few small overrides. */
+
+/* ================= macOS ================= */
+:root[data-skin='mac'] {
+  --font-body: 'SF Pro Text', 'Segoe UI Variable Text', 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
+  --font-display: var(--font-body); --font-kicker: var(--font-body); --font-num: var(--font-body);
+  --title-size: 28px; --title-w: 700; --r-card: 10px; --r-input: 7px; --r-btn: 7px; --r-win: 12px; --r-nav: 7px; --r-tile: 5px;
+  --check-r: 50%; --shadow-op: .34; --tile-fg: #fff;
+}
+:root[data-skin='mac'][data-mode='light'] {
+  --bg: #f6f6f7; --panel: #e8e8ec; --card: #ffffff; --card-line: #00000012; --text: #1d1d1f; --sub: #3c3c439e; --faint: #3c3c4357;
+  --accent: #007aff; --on-accent: #fff; --line: #00000014; --hover: #00000012; --track: #00000014; --danger: #ff3b30; --thumb: #0000004d;
+  --input: #fff; --input-line: #0000001f; --btn2: #fff; --seg-bg: #0000000d; --seg-on: #fff; --nav-on: #00000014; --side-line: #00000017;
+  --frame-border: #bdbdc2; --check-line: #3c3c4357; --widget-fill: #fafafcf5; --widget-border: #ffffff99;
+}
+:root[data-skin='mac'][data-mode='dark'] {
+  --bg: #1e1e20; --panel: #2c2c30; --card: #2a2a2c; --card-line: #ffffff12; --text: #f5f5f7; --sub: #ebebf599; --faint: #ebebf54d;
+  --accent: #0a84ff; --on-accent: #fff; --line: #ffffff17; --hover: #ffffff1a; --track: #ffffff1f; --danger: #ff453a; --thumb: #ffffff4d;
+  --input: #323234; --input-line: #ffffff26; --btn2: #3a3a3c; --seg-bg: #ffffff14; --seg-on: #636366; --nav-on: #ffffff1a; --side-line: #ffffff14;
+  --frame-border: #48484c; --check-line: #ebebf54d; --widget-fill: #2c2c30eb; --widget-border: #ffffff24; --shadow-op: .55;
+}
+
+/* ================= Fluent · Mica ================= */
+:root[data-skin='fluent'] {
+  --font-body: 'Segoe UI Variable Text', 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
+  --font-display: 'Segoe UI Variable Display', 'Segoe UI', 'Microsoft YaHei UI', sans-serif; --font-kicker: var(--font-body); --font-num: var(--font-display);
+  --title-size: 28px; --title-w: 600; --r-card: 8px; --r-input: 4px; --r-btn: 4px; --r-win: 8px; --r-nav: 4px; --r-tile: 0px;
+  --check-r: 4px; --shadow-op: .34;
+}
+:root[data-skin='fluent'][data-mode='light'] {
+  --bg: #fbfbfb; --panel: #eaeff0; --card: #ffffff; --card-line: #00000017; --text: #1a1a1a; --sub: #5f5f5f; --faint: #8b8b8b;
+  --accent: #0f7b6c; --on-accent: #fff; --line: #0000000f; --hover: #0000000a; --track: #0000001a; --danger: #c42b1c; --thumb: #00000066;
+  --input: #fff; --input-line: #00000026; --btn2: #fdfdfd; --seg-bg: #0000000a; --seg-on: #fff; --nav-on: #00000010; --side-line: #00000010;
+  --frame-border: #00000040; --check-line: #00000073; --widget-fill: #fcfcfcf2; --widget-border: #ffffff80;
+}
+:root[data-skin='fluent'][data-mode='dark'] {
+  --bg: #282828; --panel: #202323; --card: #323232; --card-line: #ffffff17; --text: #ffffff; --sub: #ffffffb8; --faint: #ffffff75;
+  --accent: #4cc9b0; --on-accent: #04211c; --line: #ffffff14; --hover: #ffffff10; --track: #ffffff1f; --danger: #ff99a4; --thumb: #ffffff66;
+  --input: #2e2e2e; --input-line: #ffffff26; --btn2: #363636; --seg-bg: #ffffff10; --seg-on: #484848; --nav-on: #ffffff14; --side-line: #ffffff10;
+  --frame-border: #ffffff40; --check-line: #ffffff99; --widget-fill: #282828f2; --widget-border: #ffffff1f; --shadow-op: .55;
+}
+:root[data-skin='fluent'] .nav-item.on::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: var(--accent); }
+:root[data-skin='fluent'] .bar { height: 4px; }
+
+/* ================= Material 3 Expressive ================= */
+:root[data-skin='material'] {
+  --font-body: 'Roboto Flex', 'Segoe UI Variable Text', 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
+  --font-display: 'Roboto Flex', 'Segoe UI Variable Display', 'Segoe UI', 'Microsoft YaHei UI', sans-serif; --font-kicker: var(--font-body); --font-num: var(--font-display);
+  --title-size: 34px; --title-w: 800; --title-ls: -.01em; --r-card: 24px; --r-input: 14px; --r-btn: 20px; --r-win: 28px; --r-nav: 99px; --r-tile: 0px;
+  --check-r: 8px; --shadow-op: .3; --card-line: transparent;
+}
+:root[data-skin='material'][data-mode='light'] {
+  --bg: #f5fbf3; --panel: #f5fbf3; --card: #ebf1e8; --text: #171d19; --sub: #404943; --faint: #707972;
+  --accent: #2c6a4d; --on-accent: #fff; --line: #dbe3d9; --hover: #e4ebe2; --track: #dbe3d9; --danger: #ba1a1a; --thumb: #70797266;
+  --input: #e4ebe2; --input-line: #70797259; --btn2: #e4ebe2; --seg-bg: #e4ebe2; --seg-on: #b4f1d0; --nav-on: #b4f1d0; --side-line: transparent;
+  --frame-border: #0000001f; --check-line: #707972; --widget-fill: #ebf1e8; --widget-border: #00000014;
+}
+:root[data-skin='material'][data-mode='dark'] {
+  --bg: #0f1511; --panel: #0f1511; --card: #1a201c; --text: #dee4dd; --sub: #bfc9c1; --faint: #8a938c;
+  --accent: #98d5b6; --on-accent: #003921; --line: #242a26; --hover: #242a26; --track: #2f3531; --danger: #ffb4ab; --thumb: #8a938c66;
+  --input: #242a26; --input-line: #8a938c59; --btn2: #242a26; --seg-bg: #242a26; --seg-on: #0c5136; --nav-on: #0c5136; --side-line: transparent;
+  --frame-border: #ffffff26; --check-line: #8a938c; --widget-fill: #1a201c; --widget-border: #ffffff1f; --shadow-op: .5;
+}
+:root[data-skin='material'] .nav-item { padding: 10px 14px; }
+:root[data-skin='material'] .nav-item.on { color: var(--text); font-weight: 600; }
+:root[data-skin='material'] .task { border-top: 0; margin: 3px 0; border-radius: 16px; background: var(--hover); }
+:root[data-skin='material'] .tasks { background: transparent; border: 0; }
+:root[data-skin='material'] .task:first-child { border-radius: 24px 24px 16px 16px; }
+:root[data-skin='material'] .task:last-child { border-radius: 16px 16px 24px 24px; }
+:root[data-skin='material'] .task:only-child { border-radius: 24px; }
+:root[data-skin='material'] .btn.primary { padding: 10px 20px; }
+
+/* ================= IBM Carbon ================= */
+:root[data-skin='carbon'] {
+  --font-body: 'IBM Plex Sans', 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
+  --font-display: var(--font-body); --font-num: 'IBM Plex Mono', Consolas, 'Cascadia Mono', 'Microsoft YaHei UI', monospace;
+  --font-kicker: 'IBM Plex Mono', Consolas, 'Cascadia Mono', 'Microsoft YaHei UI', monospace; --kicker-case: uppercase;
+  --title-size: 32px; --title-w: 300; --r-card: 0; --r-input: 0; --r-btn: 0; --r-win: 0; --r-nav: 0; --r-tile: 0; --r-bar: 0;
+  --check-r: 0; --shadow-op: .4; --accent: #0f62fe; --on-accent: #fff;
+}
+:root[data-skin='carbon'][data-mode='light'] {
+  --bg: #ffffff; --panel: #f4f4f4; --card: #f4f4f4; --card-line: #e0e0e0; --text: #161616; --sub: #525252; --faint: #6f6f6f;
+  --line: #e0e0e0; --hover: #e8e8e8; --track: #e0e0e0; --danger: #da1e28; --thumb: #8d8d8d;
+  --input: #f4f4f4; --input-line: #8d8d8d; --btn2: #e0e0e0; --seg-bg: #e0e0e0; --seg-on: #ffffff; --nav-on: #e8e8e8; --side-line: #e0e0e0;
+  --frame-border: #8d8d8d; --check-line: #161616; --widget-fill: #f4f4f4; --widget-border: #e0e0e0;
+}
+:root[data-skin='carbon'][data-mode='dark'] {
+  --bg: #161616; --panel: #262626; --card: #262626; --card-line: #393939; --text: #f4f4f4; --sub: #c6c6c6; --faint: #a8a8a8;
+  --line: #393939; --hover: #393939; --track: #393939; --danger: #ff8389; --thumb: #8d8d8d;
+  --input: #262626; --input-line: #6f6f6f; --btn2: #393939; --seg-bg: #393939; --seg-on: #161616; --nav-on: #393939; --side-line: #393939;
+  --frame-border: #000; --check-line: #f4f4f4; --widget-fill: #262626; --widget-border: #393939; --shadow-op: .6;
+}
+:root[data-skin='carbon'] .nav-item.on { box-shadow: inset 3px 0 0 var(--accent); }
+:root[data-skin='carbon'] .btn.primary { padding: 10px 16px; }
+:root[data-skin='carbon'] .tasks { border-left: 0; border-right: 0; }
+:root[data-skin='carbon'] .bar { height: 4px; }
+:root[data-skin='carbon'] .task .t { font-size: 14px; }
+
+/* ================= Dot instrument ================= */
+:root[data-skin='dot'] {
+  --font-body: 'Microsoft YaHei UI', 'Segoe UI', sans-serif; --font-display: var(--font-body);
+  --font-kicker: 'Space Mono', 'Cascadia Mono', Consolas, 'Microsoft YaHei UI', monospace; --kicker-case: uppercase;
+  --font-num: 'Kora Dot', Consolas, monospace;
+  --title-size: 28px; --title-w: 600; --r-card: 20px; --r-input: 14px; --r-btn: 99px; --r-win: 30px; --r-nav: 99px; --r-tile: 0px;
+  --check-r: 50%; --shadow-op: .3; --card: transparent;
+}
+:root[data-skin='dot'][data-mode='light'] {
+  --bg: #f2f2f0; --panel: #f2f2f0; --card-line: #c9c9c6; --text: #101010; --sub: #76767b; --faint: #9a9a9e;
+  --accent: #101010; --on-accent: #f2f2f0; --line: #c9c9c6; --hover: #e4e4e1; --track: #dcdcd9; --danger: #e4212b; --thumb: #10101066;
+  --input: #fbfbfa; --input-line: #c9c9c6; --btn2: transparent; --seg-bg: #e4e4e1; --seg-on: #101010; --nav-on: #101010; --side-line: #c9c9c6;
+  --frame-border: #c9c9c6; --check-line: #101010; --widget-fill: #0b0b0b; --widget-border: #2a2a2a; --signal: #e4212b;
+}
+:root[data-skin='dot'][data-mode='dark'] {
+  --bg: #0b0b0b; --panel: #0b0b0b; --card-line: #303030; --text: #f2f2f0; --sub: #8a8a8f; --faint: #66666a;
+  --accent: #f2f2f0; --on-accent: #0b0b0b; --line: #303030; --hover: #1b1b1b; --track: #262626; --danger: #ff5560; --thumb: #f2f2f066;
+  --input: #141414; --input-line: #333; --btn2: transparent; --seg-bg: #1b1b1b; --seg-on: #f2f2f0; --nav-on: #f2f2f0; --side-line: #303030;
+  --frame-border: #303030; --check-line: #f2f2f0; --widget-fill: #0b0b0b; --widget-border: #2a2a2a; --shadow-op: .6; --signal: #ff3b45;
+}
+:root[data-skin='dot'] .nav-item.on { color: var(--on-accent); }
+:root[data-skin='dot'] .nav-item.on .badge { color: var(--on-accent); }
+:root[data-skin='dot'] .nav-item.on .ico { color: var(--on-accent); }
+:root[data-skin='dot'] .seg button.on { color: var(--on-accent); }
+:root[data-skin='dot'] .task, :root[data-skin='dot'] .tasks { border-style: dotted; }
+:root[data-skin='dot'] .task { border-left: 0; border-right: 0; border-bottom: 0; }
+:root[data-skin='dot'] .tasks { border-left: 0; border-right: 0; border-radius: 0; border-color: var(--line); }
+:root[data-skin='dot'] .btn { border-style: dashed; }
+:root[data-skin='dot'] .btn.primary { border-style: solid; }
+:root[data-skin='dot'] .dots.red i.on { background: var(--signal); border-color: var(--signal); }
+:root[data-skin='dot'] .kicker { color: var(--text); }
+:root[data-skin='dot'] .kicker::before { content: '● '; color: var(--signal); }
+:root[data-skin='dot'] .big-num { font-family: 'Kora Dot', Consolas, monospace; font-weight: 400; letter-spacing: .04em; }
+:root[data-skin='dot'] .frame { background-image: radial-gradient(color-mix(in srgb, var(--text) 9%, transparent) 1px, transparent 1.2px); background-size: 14px 14px; }
+
+/* ---------- traffic lights (mac) vs. window controls (others) ---------- */
+:root[data-skin='mac'] .controls { position: absolute; left: 14px; top: 12px; gap: 8px; z-index: 5; flex-direction: row-reverse; }
+:root[data-skin='mac'] .controls button { width: 12px; height: 12px; border-radius: 50%; padding: 0; font-size: 0; }
+:root[data-skin='mac'] .controls button.x { background: #ff5f57; }
+:root[data-skin='mac'] .controls button.m { background: #febc2e; }
+:root[data-skin='mac'] .controls button svg { display: none; }
+:root[data-skin='mac'] .controls button:hover { background: inherit; filter: brightness(.9); }
+:root[data-skin='mac'] .side { padding-top: 40px; }
+:root[data-skin='mac'] .nav-item .ico { --tile-bg: var(--tile); }
+:root:not([data-skin='mac']) .controls { position: absolute; right: 8px; top: 10px; z-index: 5; }
+:root:not([data-skin='mac']) .head { padding-right: 100px; }

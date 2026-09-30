@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.0.0
+
+### Architecture
+- Rebuilt on Tauri 2 (Rust + Svelte). One exe, one process, two windows; closing the planner leaves the tray and widget running. Replaces the two-exe/one-dll design, the named mutex/event activation and the one-second file polling. Release exe is about 3.4 MB.
+- `plan.json` is upgraded from version 1 to 2 on first open; the original is kept as `plan.json.v1.bak`. Fields are only added, never removed. Atomic writes, `.bak` and corruption recovery are preserved and covered by `cargo test`.
+- The five interface styles are retained as CSS token sets, each with light and dark versions.
+- The old .NET 1.x source was removed from the tree (it remains in git history and the 1.x releases).
+
+### New
+- Check-off feedback: animated tick, smooth progress, rolling numbers, confetti, a rising-pitch combo scale, and a day-complete celebration. All sounds are synthesised; mute, volume and reduced-motion are respected.
+- Pomodoro: all choices (durations, task, auto-check, noise, strict, keep-awake, full-screen) are made on the focus page before starting. Full-screen focus and sleep prevention while a block runs. Restart-safe timing, widget mini timer, tray countdown, notifications and global shortcuts.
+- Daily quote (420+ entries, shuffle bag, no repeat within a pass, favourites) and daily word.
+- Automatic give-up settlement: on the next run, each task left undone the day before is recorded (0.1 day each) with a yearly projection, monthly chart, most-missed tasks and optional reasons. There is no give-up button.
+- Leave: mark a day with a reason; leave days are excluded from settlement and streaks, are summarised on the give-up page, and 3+ leave days in a week warn.
+- Streaks with monthly freeze cards, year heatmap, weekly/monthly completion, group share, focus history, estimate vs. actual, XP levels, 12 achievements, weekly summary image, CSV export.
+- Exam countdown with a suggested daily amount, daily commitment and evening review, spaced review tasks (1/2/4/7/15 days).
+- Care page: mood, three small joys, water, breathing exercises, rewards. Eye-care, sitting and bedtime reminders. Autostart.
+
 ## 1.1.1
 
 ### Fixed

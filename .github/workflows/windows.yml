@@ -1,0 +1,37 @@
+name: Windows build
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - name: Frontend logic tests
+        run: npm test
+      - name: Type check
+        run: npm run check
+      - name: Rust tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml --lib
+      - name: Build single exe
+        run: npx tauri build --no-bundle
+      - name: Report size
+        shell: pwsh
+        run: '"{0:N2} MB" -f ((Get-Item src-tauri/target/release/kora.exe).Length / 1MB)'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Kora-windows-x64
+          path: src-tauri/target/release/kora.exe

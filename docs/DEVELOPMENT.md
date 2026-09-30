@@ -1,75 +1,56 @@
 # Development
 
-Kora Desk targets .NET Framework 4.8 on Windows x64. Its C# source stays compatible with the framework's bundled compiler. It uses no external packages.
+Kora Desk 2.0 is a Tauri 2 app: a Rust backend (`src-tauri/`) and a Svelte 5 + TypeScript front end (`src/`) compiled into one small exe.
 
-| Source | Responsibility |
+## Prerequisites (Windows x64)
+
+- Node.js 20+ and npm
+- Rust stable (MSVC toolchain) and the Visual Studio Build Tools with the "Desktop development with C++" workload
+- Microsoft Edge WebView2 runtime (already present on Windows 11)
+
+## Commands
+
+| Command | What it does |
 |---|---|
-| `src/Core.cs` | Weekly and one-off tasks, preset, per-date completion, preferences (window mode, theme, appearance), schema validation, mutex-protected atomic JSON storage, culture-independent date text |
-| `src/Xaml.cs` | XAML text for the templated controls (button, check box, text box, scroll bar). No WPF types, so it can be linted anywhere |
-| `src/Ui.cs` | Brush cache, text and icon helpers, buttons, window frame, check rows, and the drawn elements (progress ring, wave, cookie badge, dot grid) |
-| `src/Controls.cs` | Themed segmented control, date field, popup menu, dialog, and the task editor |
-| `src/Skin.cs` | `Skin` base class, palettes, the skin catalog, appearance detection, and the weekly plan and preferences pages shared by every skin |
-| `src/SkinMac.cs` `SkinFluent.cs` `SkinMaterial.cs` `SkinCarbon.cs` `SkinDot.cs` | One file per interface style. Each builds the planner window (daily page and chrome) and the desktop widget, in light and dark |
-| `src/DesktopHost.cs` | Native top-level window ordering, topmost switching, native coordinates and dragging |
-| `src/Activation.cs` | Existing-process wake signals, startup coalescing, data-directory isolation |
-| src/Manager.cs | Planner executable: state, navigation, editing, backup, and preference actions handed to the skin |
-| `src/Widget.cs` | Independent widget executable: tray menu, daily rollover, live refresh, skin switching |
-| `assets/fonts` | Dot-matrix font used by the dot skin (SIL OFL) |
-| `tests/Tests.cs` | Behavior tests using isolated temporary storage |
-| `tests/DesktopTests.cs` | Real HWND lifecycle, live widget synchronization, activation and polling error regressions |
-| 	ests/SkinTests.cs | Builds every skin, page, widget, editor and dialog in a WPF session and lays them out |
+| `npm install` | Install front-end dependencies |
+| `npm run dev` | Vite dev server. Open `http://localhost:1420/?mock=rich&skin=dot&appearance=dark&page=stats` in a browser to view any page without Tauri (mock backend, browser localStorage). `&w=widget` renders the widget |
+| `npm test` | Vitest: shuffle bag, give-up projection, streak and freeze cards, pomodoro settle/recovery, spaced review, XP, content checks |
+| `npm run check` | `svelte-check` type check |
+| `cargo test --manifest-path src-tauri/Cargo.toml --lib` | Rust store tests: v1 upgrade, atomic write, corruption recovery, import validation, concurrent writers |
+| `npx tauri dev` | Run the real app with hot reload |
+| `npx tauri build --no-bundle` | Release build. Output: `src-tauri/target/release/kora.exe` (about 3.4 MB) |
 
-The source stays compatible with the C# 5 compiler bundled with .NET Framework 4.8: no string interpolation, `?.`, `nameof`, expression-bodied members or auto-property initializers.
+`KORA_DATA_DIR=<folder>` points the app at an isolated data folder for testing.
 
-## Interface styles
+## Layout
 
-A skin owns the whole look. `Skin.BuildPlanner` returns the content of the planner window for one page; `Skin.BuildWidget` returns the widget. The frame (radius, border, shadow, transparency) is added by `Manager` and `Widget`. To add a style:
+| Path | Responsibility |
+|---|---|
+| `src-tauri/src/store.rs` | `plan.json` model (PascalCase, v1 compatible; new fields ride along in `extra`), validation and limits, atomic write, `.bak`, corruption recovery, v1→v2 upgrade, import/export |
+| `src-tauri/src/desktop.rs` | Widget desktop-layer behaviour (Win32): stay above the desktop but below apps, no activation on click, topmost switching, monitor clamp |
+| `src-tauri/src/lib.rs` | Commands, tray, single instance, window events, position saving, desktop watcher |
+| `src/lib/*.ts` | Pure logic with tests: `bag`, `giveup`, `settle` (next-day settlement), `leave`, `streak`, `xp`, `achievements`, `pomodoro`, `review`, `exam`, `report` |
+| `src/lib/app.svelte.ts` | Reactive state, serialised optimistic writes, event sync between the two windows |
+| `src/lib/engine.svelte.ts` | Planner-window background duties: pomodoro settling, daily picks, reminders, achievements, tray text, global shortcuts |
+| `src/lib/audio.ts`, `fx.ts` | WebAudio synthesis (no audio files) and the confetti canvas bus |
+| `src/skins/base.css`, `skins.css` | Shared structure, and the five skins × light/dark as CSS tokens |
+| `src/pages`, `src/components` | Pages (today, plan, focus, stats, give-up bank, care, favourites, settings), editor, give-up flow, widget |
+| `src/data/quotes*.ts`, `words.ts` | 420+ quotes and daily words. Quote order is part of the shuffle bag's state: only append |
 
-1. Add a `Skin` subclass with light and dark palettes, fonts, corner radii and a check box template (`CheckXaml`).
-2. Register it in `Skins.Create` and `Skins.Catalog`.
-3. Add it to the list in `scripts/preview.ps1`.
+## Design notes
 
-The weekly plan and preferences pages come from `Pages` and only use the skin's tokens, so a new skin does not have to draw them.
+- One process, two windows (`main`, `widget`). Closing either hides it; the tray keeps the process alive. State changes are broadcast with the `state-changed` event; Rust preserves the stored widget position on every write.
+- The pomodoro stores `EndsAt`, not a countdown, so restarts and sleep resolve correctly. Both windows disable WebView2 background throttling so a hidden planner still settles on time.
+- XP, streaks, levels and the give-up projection are derived from history and never stored, so they cannot drift or double count.
+- Give-ups are never created by a button: `settleDays` runs at startup/midnight and turns yesterday's (and any missed days') unfinished tasks into records, skipping leave days and tasks created later. The first run only sets the `Settled` marker.
+- Sleep prevention uses `SetThreadExecutionState` on one dedicated thread (`keep_awake` command); full-screen uses the window API.
+- Data version is 2. Files written by 1.x open unchanged; the original is kept once as `plan.json.v1.bak`.
 
-The chosen style and appearance (`system`, `light`, `dark`) are stored in `plan.json` under `Settings`, so both executables follow a change within a second. Files written by 1.0 have neither field and open with the default style.
+## Adding a skin
 
-Native combo boxes, date pickers, context menus and message boxes ignore the skin and are unreadable in dark mode, so the app draws its own (`Controls`, `Dialogs`, `Pages`).
+1. Add `:root[data-skin='id'][data-mode='light'|'dark']` token blocks in `src/skins/skins.css` (colours, radii, fonts) and any small overrides.
+2. Add it to `SKINS` in `src/pages/Settings.svelte`, to the allow-list in `src/lib/app.svelte.ts`, and to the progress mapping in `src/components/Progress.svelte`.
 
-## Build and test
+## Manual checklist (needs real Windows)
 
-Run `scripts/build.ps1 -Test` on Windows. A nonzero compiler or test exit code fails the build. The suite checks the full weekly preset, date isolation, repeated checkoffs, one-off tasks, concurrent store instances, Unicode and identity preservation, import validation, backup roundtrips, corruption recovery, files saved before themes existed, and date text under non-Gregorian system calendars. The WPF part builds all five skins in light and dark on every page and lays them out at the real window size; it prints a NOTE when a five-task day no longer fits without scrolling.
-
-`KORA_DATA_DIR` can redirect application storage for development and testing. Do not point a test run at a real user's data directory. `--preview` on either executable renders its actual WPF window into a PNG beside the executable and exits; the manager does not launch the widget in preview mode. `--theme=<mac|fluent|material|carbon|dot>`, `--appearance=<light|dark>`, `--page=<0|1|2>` (planner only) and `--out=<file>` choose what is rendered. `scripts/preview.ps1` renders every combination with the example plan in a throwaway data folder.
-
-`KORA_DIAGNOSTICS=1` exposes a widget taskbar entry in both modes for UI inspection. This flag is off by default and is not needed for normal use.
-
-## Process and data model
-
-Each executable uses a named mutex for single-instance behavior and an event to reopen the running instance. The widget survives the planner's exit. Both read the same local store, refreshing when its timestamp changes. Mutations reload the current state under a path-specific named mutex, then replace the file atomically while retaining one previous save. A corrupt primary file is preserved separately before recovery from a valid backup.
-
-Task occurrence is computed from the current rule and local calendar date. Completion keys contain `yyyy-MM-dd/task-id`; no time zone or UTC conversion is applied to a user's day. Recurrence edits apply to historical date views as well. A task editor's save replaces that task's current definition; simultaneous edits to the same task use the last saved version.
-
-## Desktop integration
-
-The widget keeps the same WPF layered top-level HWND for its lifetime. `DesktopHost` never calls `SetParent` or converts it to `WS_CHILD`. Native `SetWindowPos` ordering keeps desktop mode just above Explorer and below ordinary apps; foreground desktop transitions are observed on a 500 ms timer. Clicking a desktop-mode task does not activate and raise the entire widget. Always-on-top uses the normal WPF/native topmost flag.
-
-The shell's `SHELLDLL_DefView`/`Progman` identity is still an Explorer convention, not a Windows widget API. Alternative shells, Show Desktop transitions, Explorer restarts, virtual desktops, and additional monitor/DPI combinations need interactive compatibility testing. The automated tests assert stable HWND identity, root-window style, visibility, topmost state, hide/show, and timer-driven synchronization. They do not prove on-screen composition or coverage of every shell configuration.
-
-Activation sends a named event before launching an executable, with reentrancy/startup protection. Shell execution is retained so normal Windows download security prompts are not bypassed. Test data directories use separate mutex/event names. Repeated polling errors are shown once until an intervening successful refresh.
-
-Native widget positions are persisted in physical screen pixels. Positions are clamped to the nearest monitor's work area when the mode is applied. The WPF interface declares per-monitor DPI awareness. Validation on additional multi-monitor/DPI arrangements is welcome; do not infer coverage from one machine.
-
-## Release verification
-
-- Build and core behavior suite pass.
-- Run `scripts/preview.ps1` and inspect the screenshots of every style and appearance for clipping and readable task rows.
-- Switch style and appearance in Preferences and confirm both windows follow; change the Windows app mode while set to follow the system.
-- Check tasks in both windows and verify the shared file and displayed count.
-- Edit a title and recurrence through the UI, then restart and verify persistence.
-- Switch desktop/topmost mode repeatedly and visually verify the widget without changing theme; test Show Desktop separately.
-- Close the planner and verify the widget process remains alive.
-- Test extracted portable files in isolation.
-- Scan tracked text and release contents; exclude private data, logs, test executables, and development paths.
-- Verify public repository visibility, remote commit, release files and checksums after publication.
-
-An optional GitHub Actions workflow is provided in `docs/windows-ci.yml`. To enable it, place it at `.github/workflows/windows.yml` using a credential with workflow permission. It builds and runs core tests on Windows. Native desktop interaction still requires an interactive Windows session; the workflow does not validate desktop composition.
+Desktop layer vs. topmost switching, dragging and position restore across monitors and DPI, click-through focus behaviour on the desktop layer, tray menu, toast notifications, global shortcuts, autostart, first run without WebView2.

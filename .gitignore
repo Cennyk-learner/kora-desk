@@ -1,6 +1,9 @@
-﻿dist/
+node_modules/
+dist/
 release/
 test-data/
+src-tauri/target/
+src-tauri/gen/
 *.user
 *.suo
 .vs/
@@ -8,4 +11,3 @@ test-data/
 *.log
 *.tmp
 .env
-.env.*
