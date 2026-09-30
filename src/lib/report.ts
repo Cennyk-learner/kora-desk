@@ -108,7 +108,7 @@ export async function renderWeeklyCard(s: State, today: string): Promise<Blob> {
   g.fillText('放弃库', 60, 700);
   g.fillStyle = text;
   g.font = `700 44px ${font}`;
-  g.fillText(`本周 ${w.giveups} 项  ·  累计 ${gs.totalDays.toFixed(1)} 天`, 60, 760);
+  g.fillText(`本周 ${w.giveups} 次  ·  累计 ${gs.totalDays.toFixed(1)} 天`, 60, 760);
   g.fillStyle = sub;
   g.font = `400 22px ${font}`;
   g.fillText(w.giveups === 0 ? '这一周没有未完成的任务。' : '没完成的已被诚实地记下，下周继续。', 60, 800);
@@ -145,7 +145,7 @@ export function toCsv(s: State): string {
   const title = new Map(s.Tasks.map((t) => [t.Id, t.Title]));
   for (const d of s.Done) rows.push(['完成', d.slice(0, 10), title.get(d.slice(11)) ?? d.slice(11), 1, '']);
   for (const x of s.Sessions) rows.push([x.kind === 'focus' ? '番茄' : '被打断', x.date, title.get(x.taskId ?? '') ?? '自由专注', x.minutes, `计划 ${x.planned} 分钟`]);
-  for (const x of s.Giveups) rows.push(['放弃', x.date, x.title ?? '未完成任务', 0.1, x.reason ?? '']);
+  for (const x of s.Giveups) rows.push(['放弃', x.date, (x.titles ?? []).join('、') || '未完成任务', 0.1, x.reason ?? '']);
   for (const l of s.Leaves) rows.push(['请假', l.date, l.reason, 1, '']);
   for (const [d, j] of Object.entries(s.Journal)) rows.push(['心情/复盘', d, j.note ?? j.goal ?? '', j.mood ?? '', j.result ?? '']);
   return '﻿' + rows.map((r) => r.map(esc).join(',')).join('\r\n');

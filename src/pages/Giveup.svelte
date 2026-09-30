@@ -33,7 +33,7 @@
 <div class="inner">
   <div class="kicker">THE GIVE-UP BANK</div>
   <h1 class="title">放弃与请假</h1>
-  <div class="sub">每天结束后，没完成的任务会在第二天打开程序时自动记入放弃库，每项 0.1 天。请假的日子不计。</div>
+  <div class="sub">如果一天结束时还有任务没完成，第二天打开程序时会自动记一次放弃：每天最多一次，每次 0.1 天。请假的日子不计。</div>
 
   {#if weekLeaves >= LEAVE_WARN_DAYS}
     <div class="warn" style="margin-top:14px">⚠️ 本周已请假 {weekLeaves} 天（≥ {LEAVE_WARN_DAYS} 天预警）。休息是应该的，也请留意是不是需要调整计划。</div>
@@ -44,13 +44,13 @@
     <div class="row spread wrap">
       <div>
         <div class="big-num" style="font-size:44px">{st.totalDays.toFixed(1)}<span class="sub" style="font-size:16px;font-weight:400"> 天</span></div>
-        <div class="sub">累计 {st.count} 项未完成 × 0.1 天</div>
+        <div class="sub">累计 {st.count} 天有未完成 × 0.1 天</div>
       </div>
       <div style="max-width:320px;line-height:1.7" class="sub">{st.count ? projectionText(st) : '还没有记录。这很好。'}</div>
     </div>
     <div class="kv" style="margin-top:14px">
       <span>有记录的活跃天数</span><span class="num" style="color:var(--text)">{st.activeDays}</span>
-      <span>日均放弃</span><span class="num" style="color:var(--text)">{st.perActiveDay.toFixed(2)} 项</span>
+      <span>日均放弃</span><span class="num" style="color:var(--text)">{st.perActiveDay.toFixed(2)} 次</span>
       <span>一年推算（日均 × 0.1 × 365）</span><span class="num" style="color:var(--text)">{st.yearDays.toFixed(1)} 天</span>
     </div>
     {#if st.smallSample && st.count}<div class="faint" style="font-size:12px;margin-top:8px">活跃天数不足 7 天，样本较少，推算仅供参考。</div>{/if}
@@ -92,10 +92,10 @@
   {#if recent.length}
     <div class="label">最近记录 <span class="faint" style="font-weight:400">点右侧标签可以记下原因</span></div>
     <div class="tasks">
-      {#each recent as g (g.ts + (g.taskId ?? ''))}
+      {#each recent as g (g.date)}
         <div class="task" style="grid-template-columns:1fr auto auto">
-          <div class="t" style="font-size:14px">{g.title ?? '未完成任务'}<span class="faint" style="font-size:12px;margin-left:8px">{g.date}</span></div>
-          <button class="chip" onclick={() => setGiveupReason(g.ts, g.taskId, nextReason(g.reason))}>{g.reason ?? '标注原因'}</button>
+          <div style="min-width:0"><div class="t" style="font-size:14px">{g.date}</div><div class="n">{(g.titles ?? []).join('、') || '未完成任务'}</div></div>
+          <button class="chip" onclick={() => setGiveupReason(g.date, nextReason(g.reason))}>{g.reason ?? '标注原因'}</button>
         </div>
       {/each}
     </div>

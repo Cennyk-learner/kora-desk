@@ -43,7 +43,8 @@ export function mockState(rich: boolean): State {
       if (!task.Days.includes(dow)) continue;
       if (rnd() < 0.35 + mood * 0.6) s.Done.push(`${k}/${task.Id}`);
     }
-    for (const task of tasks) if (task.Days.includes(dow) && !s.Done.includes(`${k}/${task.Id}`) && rnd() < 0.3) s.Giveups.push({ ts: Date.now() - i * 86400000, date: k, taskId: task.Id, title: task.Title, ...(rnd() < 0.5 ? { reason: ['累', '没状态', '太忙', '拖延'][Math.floor(rnd() * 4)] } : {}) });
+    const miss = tasks.filter((task) => task.Days.includes(dow) && !s.Done.includes(`${k}/${task.Id}`));
+    if (miss.length && rnd() < 0.5) s.Giveups.push({ ts: Date.now() - i * 86400000, date: k, titles: miss.map((m) => m.Title), ...(rnd() < 0.5 ? { reason: ['累', '没状态', '太忙', '拖延'][Math.floor(rnd() * 4)] } : {}) });
     const n = Math.floor(rnd() * 5);
     for (let j = 0; j < n; j++) s.Sessions.push({ ts: Date.now() - i * 86400000 + j, date: k, kind: 'focus', minutes: 25, planned: 25, taskId: tasks[Math.floor(rnd() * 4)].Id });
     if (rnd() < 0.5) s.Journal[k] = { mood: 2 + Math.floor(rnd() * 4), result: rnd() < 0.5 ? 'done' : 'partial', water: Math.floor(rnd() * 9) };

@@ -62,12 +62,12 @@ export interface BagState {
   Favs: number[];
 }
 
-/** One unfinished task, recorded automatically when the day is settled. Each is worth 0.1 day. */
+/** One record per day that ended with unfinished tasks, made automatically at settlement. Worth 0.1 day. */
 export interface Giveup {
   ts: number;
   date: string;
-  taskId?: string;
-  title?: string;
+  /** Titles of the tasks left undone that day. */
+  titles?: string[];
   reason?: string;
 }
 

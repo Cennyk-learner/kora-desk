@@ -58,6 +58,7 @@
     const avg = days.size ? [...days].reduce((a, d) => a + actualMinutes(app.state, x.Id, d), 0) / days.size : 0;
     return { title: x.Title, est: x.Est!, avg: Math.round(avg), days: days.size };
   }));
+  const groups2 = $derived([...ACHIEVEMENTS.reduce((m, a) => m.set(a.group, [...(m.get(a.group) ?? []), a]), new Map<string, typeof ACHIEVEMENTS>())]);
   const weekDone = $derived(dayInfo(app.state, t));
 
   const shade = (r: number) => (r < 0 ? 'var(--track)' : `color-mix(in srgb, var(--accent) ${Math.round(18 + r * 82)}%, var(--track))`);
@@ -169,14 +170,17 @@
   {/if}
 
   <h2 class="sec">成就徽章 <small>{Object.keys(app.state.Ach).length}/{ACHIEVEMENTS.length}</small></h2>
-  <div class="badge-grid">
-    {#each ACHIEVEMENTS as a}
-      {@const got = app.state.Ach[a.id]}
-      <div class="ach" class:locked={!got} title={got ? `解锁于 ${got}` : '未解锁'}>
-        <span class="i">{a.icon}</span><b style="font-size:13px">{a.name}</b><small>{a.desc}</small>
-      </div>
-    {/each}
-  </div>
+  {#each groups2 as [g, list]}
+    <div class="label">{g} · {list.filter((a) => app.state.Ach[a.id]).length}/{list.length}</div>
+    <div class="badge-grid">
+      {#each list as a}
+        {@const got = app.state.Ach[a.id]}
+        <div class="ach" class:locked={!got} title={got ? `解锁于 ${got}` : '未解锁'}>
+          <span class="i">{a.icon}</span><b style="font-size:13px">{a.name}</b><small>{a.desc}</small>
+        </div>
+      {/each}
+    </div>
+  {/each}
 
   <h2 class="sec">每周小结</h2>
   <div class="card row spread wrap">

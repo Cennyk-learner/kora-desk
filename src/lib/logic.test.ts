@@ -9,7 +9,7 @@ import { computeStreak } from './streak';
 import { idle, interrupt, pause, resume, settle, startFocus, leftMs } from './pomodoro';
 import { scheduleReviews, cancelReviews } from './review';
 import { levelOf, xpTotal } from './xp';
-import { eligible } from './achievements';
+import { ACHIEVEMENTS, eligible } from './achievements';
 import type { State, Task } from './types';
 import { QUOTES } from '../data/quotes';
 import { WORDS } from '../data/words';
@@ -101,7 +101,7 @@ describe('give-up bank', () => {
     const s = mk([{ Title: 'a' }]);
     // 20 active days with 32 records => 1.6 per day => 58.4 days/year
     for (let i = 0; i < 20; i++) setDone(s, 't0', addKey('2026-03-01', i), true);
-    for (let i = 0; i < 32; i++) s.Giveups.push({ ts: i, date: addKey('2026-03-01', i % 20), taskId: 't0', title: 'a' });
+    for (let i = 0; i < 32; i++) s.Giveups.push({ ts: i, date: addKey('2026-03-01', i % 20), titles: ['a'] });
     const st = giveupStats(s);
     expect(st.totalDays).toBe(3.2);
     expect(st.activeDays).toBe(20);
@@ -120,9 +120,8 @@ describe('give-up bank', () => {
   });
   it('summarises reasons and the most-missed tasks', () => {
     const s = mk([{}, {}]);
-    s.Giveups.push({ ts: 1, date: '2026-01-01', title: '背单词', reason: '拖延' });
-    s.Giveups.push({ ts: 2, date: '2026-01-02', title: '背单词', reason: '拖延' });
-    s.Giveups.push({ ts: 3, date: '2026-01-02', title: '写作' });
+    s.Giveups.push({ ts: 1, date: '2026-01-01', titles: ['背单词'], reason: '拖延' });
+    s.Giveups.push({ ts: 2, date: '2026-01-02', titles: ['背单词', '写作'], reason: '拖延' });
     const st = giveupStats(s);
     expect(st.byReason[0]).toEqual(['拖延', 2]);
     expect(st.byTask[0]).toEqual(['背单词', 2]);
@@ -130,24 +129,31 @@ describe('give-up bank', () => {
 });
 
 describe('daily settlement', () => {
-  it('records unfinished tasks of past days once, the next day', () => {
-    const s = mk([{ Title: 'a' }, { Title: 'b' }]);
+  it('records at most one give-up per day, the next day', () => {
+    const s = mk([{ Title: 'a' }, { Title: 'b' }, { Title: 'c' }]);
     s.Settled = '2026-03-01';
     setDone(s, 't0', '2026-03-02', true);
-    expect(settleDays(s, '2026-03-03')).toBe(1); // t1 on 03-02
-    expect(s.Giveups[0]).toMatchObject({ date: '2026-03-02', taskId: 't1', title: 'b' });
+    expect(settleDays(s, '2026-03-03')).toBe(1); // b and c missed, still one record
+    expect(s.Giveups).toHaveLength(1);
+    expect(s.Giveups[0]).toMatchObject({ date: '2026-03-02', titles: ['b', 'c'] });
     expect(s.Settled).toBe('2026-03-02');
     expect(settleDays(s, '2026-03-03')).toBe(0);
     expect(giveupStats(s).totalDays).toBe(0.1);
   });
-  it('settles every missed day after time away, skipping leave days and not-yet-created tasks', () => {
+  it('a fully done day records nothing', () => {
+    const s = mk([{}]);
+    s.Settled = '2026-03-01';
+    setDone(s, 't0', '2026-03-02', true);
+    expect(settleDays(s, '2026-03-03')).toBe(0);
+  });
+  it('settles each missed day after time away, skipping leave days and not-yet-created tasks', () => {
     const s = mk([{ Title: 'a', Created: '2026-03-04' }, { Title: 'b' }]);
     s.Settled = '2026-03-01';
     setLeave(s, '2026-03-03', '生病');
-    // days 02,03,04 are missed; 03 is leave; task a did not exist on 02 and 03
-    expect(settleDays(s, '2026-03-05')).toBe(1 + 2);
-    expect(s.Giveups.filter((g) => g.date === '2026-03-03')).toHaveLength(0);
-    expect(s.Giveups.filter((g) => g.taskId === 't0').map((g) => g.date)).toEqual(['2026-03-04']);
+    expect(settleDays(s, '2026-03-05')).toBe(2); // 02 and 04
+    expect(s.Giveups.map((g) => g.date)).toEqual(['2026-03-02', '2026-03-04']);
+    expect(s.Giveups[0].titles).toEqual(['b']);
+    expect(s.Giveups[1].titles).toEqual(['a', 'b']);
   });
   it('the first run only sets the marker (no retroactive judgement)', () => {
     const s = mk([{}]);
@@ -288,6 +294,24 @@ describe('xp and achievements', () => {
     expect(eligible(s, '2026-03-01')).not.toContain('first');
     setDone(s, 't0', '2026-03-01', true);
     expect(eligible(s, '2026-03-01')).toContain('first');
+  });
+});
+
+describe('achievements', () => {
+  it('has unique ids and every group is named', () => {
+    expect(new Set(ACHIEVEMENTS.map((a) => a.id)).size).toBe(ACHIEVEMENTS.length);
+    expect(ACHIEVEMENTS.length).toBeGreaterThanOrEqual(30);
+  });
+  it('unlocks streak, focus, restart and rest badges from data', () => {
+    const s = mk([{}]);
+    for (const d of ['2026-03-02', '2026-03-03', '2026-03-04']) setDone(s, 't0', d, true);
+    for (let i = 0; i < 10; i++) s.Sessions.push({ ts: i, date: '2026-03-04', kind: 'focus', minutes: 25, planned: 25 });
+    s.Giveups.push({ ts: 1, date: '2026-03-01', titles: ['x'] });
+    setLeave(s, '2026-03-10', '生病');
+    const got = eligible(s, '2026-03-05');
+    for (const id of ['first', 'streak3', 'focus1', 'focus10', 'deepday', 'restart', 'rest']) expect(got).toContain(id);
+    expect(got).not.toContain('streak7');
+    expect(got).not.toContain('focus100');
   });
 });
 

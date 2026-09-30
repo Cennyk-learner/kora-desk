@@ -159,7 +159,7 @@ async function settlement(): Promise<void> {
   await update((st) => {
     added = settleDays(st, app.today);
   });
-  if (added > 0) toast(`有 ${added} 项任务没有完成，已记入放弃库。今天重新开始。`, '🍂');
+  if (added > 0) toast(added === 1 ? '昨天有任务没完成，已记一次放弃（0.1 天）。今天重新开始。' : `有 ${added} 天没完成全部任务，已各记一次放弃。今天重新开始。`, '🍂');
 }
 
 function syncNoise(): void {

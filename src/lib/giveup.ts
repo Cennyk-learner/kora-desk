@@ -47,7 +47,7 @@ export function giveupStats(s: State): GiveupStats {
     smallSample: active < 7,
     byMonth: tally(s.Giveups.map((g) => g.date.slice(0, 7))).sort((a, b) => a[0].localeCompare(b[0])),
     byReason: tally(s.Giveups.filter((g) => g.reason).map((g) => g.reason!)).sort((a, b) => b[1] - a[1]),
-    byTask: tally(s.Giveups.filter((g) => g.title).map((g) => g.title!)).sort((a, b) => b[1] - a[1]).slice(0, 5)
+    byTask: tally(s.Giveups.flatMap((g) => g.titles ?? [])).sort((a, b) => b[1] - a[1]).slice(0, 5)
   };
 }
 

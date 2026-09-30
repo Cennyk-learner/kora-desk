@@ -146,9 +146,9 @@ export function deleteTask(id: string): Promise<void> {
 /* ---------- give-up bank and leave ---------- */
 
 /** Tag a settled miss with a reason (the record is created automatically at settlement). */
-export function setGiveupReason(ts: number, taskId: string | undefined, reason: string): Promise<void> {
+export function setGiveupReason(date: string, reason: string): Promise<void> {
   return update((s) => {
-    const g = s.Giveups.find((x) => x.ts === ts && x.taskId === taskId);
+    const g = s.Giveups.find((x) => x.date === date);
     if (g) {
       if (reason) g.reason = reason;
       else delete g.reason;

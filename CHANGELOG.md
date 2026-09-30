@@ -12,9 +12,9 @@
 - Check-off feedback: animated tick, smooth progress, rolling numbers, confetti, a rising-pitch combo scale, and a day-complete celebration. All sounds are synthesised; mute, volume and reduced-motion are respected.
 - Pomodoro: all choices (durations, task, auto-check, noise, strict, keep-awake, full-screen) are made on the focus page before starting. Full-screen focus and sleep prevention while a block runs. Restart-safe timing, widget mini timer, tray countdown, notifications and global shortcuts.
 - Daily quote (420+ entries, shuffle bag, no repeat within a pass, favourites) and daily word.
-- Automatic give-up settlement: on the next run, each task left undone the day before is recorded (0.1 day each) with a yearly projection, monthly chart, most-missed tasks and optional reasons. There is no give-up button.
+- Automatic give-up settlement: on the next run, a day that ended with unfinished tasks is recorded once (0.1 day, at most one per day) with a yearly projection, monthly chart, most-missed tasks and optional reasons. There is no give-up button.
 - Leave: mark a day with a reason; leave days are excluded from settlement and streaks, are summarised on the give-up page, and 3+ leave days in a week warn.
-- Streaks with monthly freeze cards, year heatmap, weekly/monthly completion, group share, focus history, estimate vs. actual, XP levels, 12 achievements, weekly summary image, CSV export.
+- Streaks with monthly freeze cards, year heatmap, weekly/monthly completion, group share, focus history, estimate vs. actual, XP levels, 32 grouped achievements, weekly summary image, CSV export.
 - Exam countdown with a suggested daily amount, daily commitment and evening review, spaced review tasks (1/2/4/7/15 days).
 - Care page: mood, three small joys, water, breathing exercises, rewards. Eye-care, sitting and bedtime reminders. Autostart.
 

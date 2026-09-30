@@ -22,9 +22,9 @@ Upgrading from 1.x: just run it. `plan.json` is upgraded in place and the origin
 - **Positive feedback**: tick animation, smooth progress, confetti, a rising combo scale, a day-complete celebration. Sounds are synthesised; mute, volume and reduced motion are respected.
 - **Daily quote** (420+, shuffle bag: no repeats within a pass) and **daily word**, with favourites.
 - **Pomodoro**: choose durations, task, auto-check, noise, strict mode on the focus page before you start (remembered). Full-screen focus (Esc to leave) and sleep prevention keep the screen awake. Restart-safe, widget mini timer, tray countdown, notifications, global shortcuts.
-- **Give-up bank, automatic**: there is no give-up button. When you open the app the next day, every task left undone the day before is recorded (0.1 day each), with a one-year projection, monthly chart and optional reasons.
+- **Give-up bank, automatic**: there is no give-up button. When you open the app the next day, a day that ended with unfinished tasks is recorded once (0.1 day, at most one per day), with a one-year projection, monthly chart and optional reasons.
 - **Leave**: mark a day as leave with a reason. Leave days are not counted and do not break streaks; they are summarised on the give-up page, and 3 or more leave days in a week raises a warning.
-- **Progress**: streaks with freeze cards, heatmap, completion trends, focus history, estimate vs. actual, XP levels, 12 achievements, weekly summary image, CSV export.
+- **Progress**: streaks with freeze cards, heatmap, completion trends, focus history, estimate vs. actual, XP levels, 32 grouped achievements, weekly summary image, CSV export.
 - **Study tools**: exam countdown with suggested daily amount, daily commitment and evening review, spaced-review tasks (1/2/4/7/15 days).
 - **Take care**: mood, three small joys, water, breathing exercises, rewards; eye-care, sitting and bedtime reminders; autostart.
 
