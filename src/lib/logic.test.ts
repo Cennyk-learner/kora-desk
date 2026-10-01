@@ -316,12 +316,12 @@ describe('achievements', () => {
 });
 
 describe('focus scenes', () => {
-  it('has 50 captioned photos whose files exist', async () => {
+  it('has 100 captioned photos whose files exist', async () => {
     const { SCENES } = await import('../data/scenes');
     // @ts-ignore node types are not part of the front-end tsconfig
     const fs = await import('node:fs');
-    expect(SCENES.length).toBe(50);
-    expect(new Set(SCENES.map((s) => s.file)).size).toBe(50);
+    expect(SCENES.length).toBe(100);
+    expect(new Set(SCENES.map((s) => s.file)).size).toBe(100);
     for (const s of SCENES) {
       expect(s.place && s.author && s.license && s.source.startsWith('https://commons.wikimedia.org/')).toBeTruthy();
       expect(fs.existsSync(`public/scenes/${s.file}`)).toBe(true);

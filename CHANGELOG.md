@@ -3,13 +3,13 @@
 ## 2.0.0
 
 ### Architecture
-- Rebuilt on Tauri 2 (Rust + Svelte). One exe, one process, two windows; closing the planner leaves the tray and widget running. Replaces the two-exe/one-dll design, the named mutex/event activation and the one-second file polling. Release exe is about 55 MB, of which about 51 MB is the 50 full-screen focus photographs; the app itself is 3–4 MB.
+- Rebuilt on Tauri 2 (Rust + Svelte). One exe, one process, two windows; closing the planner leaves the tray and widget running. Replaces the two-exe/one-dll design, the named mutex/event activation and the one-second file polling. Release exe is about 100 MB, of which about 95 MB is the 100 full-screen focus photographs; the app itself is 3–4 MB.
 - `plan.json` is upgraded from version 1 to 2 on first open; the original is kept as `plan.json.v1.bak`. Fields are only added, never removed. Atomic writes, `.bak` and corruption recovery are preserved and covered by `cargo test`.
 - The five interface styles are retained as CSS token sets, each with light and dark versions.
 - The old .NET 1.x source was removed from the tree (it remains in git history and the 1.x releases).
 
 ### New
-- Full-screen focus: an immersive view with 50 slowly cross-fading 4K landscape photographs (mostly Iceland, plus Norway, Switzerland, the Faroe Islands, New Zealand and Japan), captioned with place and photographer. They change every 5 hours by default (configurable, or manual only), can be switched by hand, and each opening starts on a different one (a persistent shuffle bag); start/pause/stop from inside, exit with the button or Esc. Photos are from Wikimedia Commons under their original licences (docs/IMAGE_CREDITS.md).
+- Full-screen focus: an immersive view with 100 slowly cross-fading 4K photographs (mostly Iceland, plus Nordic, Italian, Indonesian, New Zealand and Australian nature, and US city skylines), captioned with place and photographer. They change every 5 hours by default (configurable, or manual only), can be switched by hand, and each opening starts on a different one (a persistent shuffle bag); start/pause/stop from inside, exit with the button or Esc. Photos are from Wikimedia Commons under their original licences (docs/IMAGE_CREDITS.md).
 - Check-off feedback: animated tick, smooth progress, rolling numbers, confetti, a rising-pitch combo scale, and a day-complete celebration. All sounds are synthesised; mute, volume and reduced-motion are respected.
 - Pomodoro: all choices (durations, task, auto-check, noise, strict, keep-awake, full-screen) are made on the focus page before starting. Full-screen focus and sleep prevention while a block runs. Restart-safe timing, widget mini timer, tray countdown, notifications and global shortcuts.
 - Daily quote (420+ entries, shuffle bag, no repeat within a pass, favourites) and daily word.

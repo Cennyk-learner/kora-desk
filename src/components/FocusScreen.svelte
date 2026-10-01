@@ -11,10 +11,15 @@
   // nothing repeats until all of them have been seen.
   const BAG_KEY = 'kora-scene-bag';
   const LAST_KEY = 'kora-scene-last';
+  const TOTAL_KEY = 'kora-scene-total';
   function load(): number[] {
     try {
       const raw = JSON.parse(localStorage.getItem(BAG_KEY) ?? '[]');
-      return Array.isArray(raw) ? raw.filter((i: number) => Number.isInteger(i) && i >= 0 && i < SCENES.length) : [];
+      const bag: number[] = Array.isArray(raw) ? raw.filter((i: number) => Number.isInteger(i) && i >= 0 && i < SCENES.length) : [];
+      const was = Number(localStorage.getItem(TOTAL_KEY) ?? 0);
+      // Photos added by an update join the current round at random places.
+      if (was > 0 && was < SCENES.length) for (let i = was; i < SCENES.length; i++) bag.splice(Math.floor(Math.random() * (bag.length + 1)), 0, i);
+      return bag;
     } catch {
       return [];
     }
@@ -23,6 +28,7 @@
     try {
       localStorage.setItem(BAG_KEY, JSON.stringify(bag));
       localStorage.setItem(LAST_KEY, String(last));
+      localStorage.setItem(TOTAL_KEY, String(SCENES.length));
     } catch {
       /* optional */
     }
@@ -45,6 +51,7 @@
   let layers = $state<[number, number]>([first, first]);
   history.push(first);
   let hpos = 0;
+  let fade = $state(6); // seconds; quick for a manual change, slow for the timed one
   let active = $state(true); // controls visible while the pointer moves
   let idleTimer: ReturnType<typeof setTimeout> | undefined;
   let rotateTimer: ReturnType<typeof setInterval> | undefined;
@@ -56,21 +63,21 @@
   const left = $derived(leftMs(f, app.now));
   const label = $derived(f.Mode === 'focus' ? '专注中' : f.Mode === 'short' ? '短休息' : f.Mode === 'long' ? '长休息' : '准备好了');
   const task = $derived(app.state.Tasks.find((t) => t.Id === f.TaskId));
-  const scene = $derived(SCENES[layers[front]]);
 
   function preload(i: number) {
     const img = new Image();
     img.src = `/scenes/${SCENES[i].file}`;
   }
 
-  function show(i: number) {
+  function show(i: number, seconds: number) {
+    fade = seconds;
     const back = 1 - front;
     layers[back] = i;
     requestAnimationFrame(() => (front = back));
   }
 
   /** Manual or timed change. Going back replays what was shown before this opening. */
-  function advance(step: 1 | -1) {
+  function advance(step: 1 | -1, seconds = 6) {
     if (step === -1) {
       if (hpos === 0) return;
       hpos--;
@@ -79,7 +86,7 @@
       history.push(draw());
       hpos = history.length - 1;
     }
-    show(history[hpos]);
+    show(history[hpos], seconds);
     if (bag.length) preload(bag[0]);
   }
 
@@ -116,7 +123,14 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="fs" class:active onmousemove={wake} onmousedown={wake}>
   {#each [0, 1] as i}
-    <div class="bg" class:show={front === i} style="background-image:url('/scenes/{SCENES[layers[i]].file}')"></div>
+    <div class="layer" class:show={front === i} style="--fade:{fade}s">
+      <div class="bg" style="background-image:url('/scenes/{SCENES[layers[i]].file}')"></div>
+      <div class="caption">
+        <div class="place">{SCENES[layers[i]].place}</div>
+        <div class="where">{SCENES[layers[i]].sub}</div>
+        <div class="credit">摄影：{SCENES[layers[i]].author} · {SCENES[layers[i]].license} · Wikimedia Commons</div>
+      </div>
+    </div>
   {/each}
   <div class="shade"></div>
 
@@ -140,29 +154,27 @@
     </div>
   </div>
 
-  <div class="caption">
-    <div class="place">{scene.place}</div>
-    <div class="where">{scene.sub}</div>
-    <div class="credit">摄影：{scene.author} · {scene.license} · Wikimedia Commons</div>
-  </div>
   <div class="next ctl">
-    <button class="x" onclick={() => { advance(-1); restartTimer(); }} aria-label="上一张"><Icon name="left" size={16} /></button>
-    <button class="x" onclick={() => { advance(1); restartTimer(); }} aria-label="下一张"><Icon name="right" size={16} /></button>
+    <button class="x" onclick={() => { advance(-1, 1.2); restartTimer(); }} aria-label="上一张"><Icon name="left" size={16} /></button>
+    <button class="x" onclick={() => { advance(1, 1.2); restartTimer(); }} aria-label="下一张"><Icon name="right" size={16} /></button>
   </div>
 </div>
 
 <style>
   .fs { position: fixed; inset: 0; z-index: 60; color: #fff; background: #0b0f14; overflow: hidden; cursor: none; user-select: none; }
   .fs.active { cursor: default; }
-  .bg { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 6s ease-in-out; transform: scale(1.04); }
-  .bg.show { opacity: 1; animation: drift 60s ease-out forwards; }
+  .layer { position: absolute; inset: 0; opacity: 0; transition: opacity var(--fade, 6s) ease-in-out; }
+  .layer.show { opacity: 1; }
+  .bg { position: absolute; inset: 0; background-size: cover; background-position: center; transform: scale(1.04); }
+  .layer.show .bg { animation: drift 60s ease-out forwards; }
   @keyframes drift { from { transform: scale(1.04); } to { transform: scale(1.12); } }
-  .shade { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0.58)), linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent 35%); }
+  /* Keep the photograph bright: only a soft pool behind the clock and a light foot for the caption. */
+  .shade { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 46% 34% at 50% 48%, rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0) 100%), linear-gradient(to top, rgba(0, 0, 0, 0.32), transparent 22%); }
   .center { pointer-events: none; position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding: 0 24px; }
-  .state { font-size: 15px; letter-spacing: 0.3em; opacity: 0.85; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6); }
-  .clock { font-size: clamp(88px, 17vw, 240px); font-weight: 200; font-variant-numeric: tabular-nums; line-height: 1.05; letter-spacing: -0.02em; text-shadow: 0 4px 30px rgba(0, 0, 0, 0.55); }
-  .what { font-size: 20px; opacity: 0.92; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7); }
-  .caption { position: absolute; left: 28px; bottom: 24px; max-width: 60%; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8); transition: opacity 0.6s; }
+  .state { font-size: 15px; letter-spacing: 0.3em; opacity: 0.95; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 2px 14px rgba(0, 0, 0, 0.7); }
+  .clock { font-size: clamp(88px, 17vw, 240px); font-weight: 300; font-variant-numeric: tabular-nums; line-height: 1.05; letter-spacing: -0.02em; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35), 0 6px 40px rgba(0, 0, 0, 0.6); }
+  .what { font-size: 20px; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 2px 16px rgba(0, 0, 0, 0.75); }
+  .caption { position: absolute; left: 28px; bottom: 24px; max-width: 60%; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), 0 1px 12px rgba(0, 0, 0, 0.8); }
   .place { font-size: 17px; font-weight: 600; }
   .where { font-size: 13px; opacity: 0.85; margin-top: 2px; }
   .credit { font-size: 11px; opacity: 0.65; margin-top: 6px; }
