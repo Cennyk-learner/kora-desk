@@ -128,5 +128,9 @@ export async function emitEvent(name: string, payload?: unknown): Promise<void> 
 export async function setFullscreen(on: boolean): Promise<void> {
   if (!isTauri) return;
   const { getCurrentWindow } = await import('@tauri-apps/api/window');
-  await getCurrentWindow().setFullscreen(on);
+  try {
+    await getCurrentWindow().setFullscreen(on);
+  } catch (e) {
+    console.warn('fullscreen failed', e);
+  }
 }

@@ -315,6 +315,20 @@ describe('achievements', () => {
   });
 });
 
+describe('focus scenes', () => {
+  it('has 50 captioned photos whose files exist', async () => {
+    const { SCENES } = await import('../data/scenes');
+    // @ts-ignore node types are not part of the front-end tsconfig
+    const fs = await import('node:fs');
+    expect(SCENES.length).toBe(50);
+    expect(new Set(SCENES.map((s) => s.file)).size).toBe(50);
+    for (const s of SCENES) {
+      expect(s.place && s.author && s.license && s.source.startsWith('https://commons.wikimedia.org/')).toBeTruthy();
+      expect(fs.existsSync(`public/scenes/${s.file}`)).toBe(true);
+    }
+  });
+});
+
 describe('defaults', () => {
   it('withDefaults is idempotent and keeps user data', () => {
     const s = mk([{}]);

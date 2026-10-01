@@ -52,6 +52,8 @@ export interface Prefs {
   KeyFocus?: string;
   KeyOpen?: string;
   KeepAwake?: boolean;
+  /** Hours between automatic photo changes in full-screen focus (0 = manual only). */
+  SceneHours?: number;
 }
 
 export interface BagState {

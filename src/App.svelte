@@ -8,6 +8,7 @@
   import type { Page, Task } from './lib/types';
   import Editor from './components/Editor.svelte';
   import ExamModal from './components/ExamModal.svelte';
+  import FocusScreen from './components/FocusScreen.svelte';
   import FxLayer from './components/FxLayer.svelte';
   import LeaveModal from './components/LeaveModal.svelte';
   import Icon from './components/Icon.svelte';
@@ -52,7 +53,9 @@
     void backend.setFullscreen(app.fullscreen);
   });
   function esc(e: KeyboardEvent) {
-    if (e.key === 'Escape' && app.fullscreen) app.fullscreen = false;
+    if (e.key !== 'Escape') return;
+    if (app.fullscreen) app.fullscreen = false;
+    else if (app.minimalFocus) app.minimalFocus = false;
   }
 
   function shiftWeek(n: number) {
@@ -130,6 +133,7 @@
   {#if editing}<Editor task={editing === 'new' ? null : editing} defaultDate={app.selected} onclose={() => (editing = null)} />{/if}
   {#if app.leaveOpen}<LeaveModal onclose={() => (app.leaveOpen = false)} />{/if}
   {#if examOpen}<ExamModal onclose={() => (examOpen = false)} />{/if}
+  {#if app.fullscreen}<FocusScreen />{/if}
   <Toasts />
 </div>
 <FxLayer />

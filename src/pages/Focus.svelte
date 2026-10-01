@@ -25,14 +25,10 @@
   };
   function begin() {
     void startPomo(taskId);
-    if (cfg.Fullscreen) {
-      app.fullscreen = true;
-      app.minimalFocus = true;
-    }
+    if (cfg.Fullscreen) app.fullscreen = true;
   }
   function toggleFull() {
     app.fullscreen = !app.fullscreen;
-    app.minimalFocus = app.fullscreen;
   }
   function bind(id: string) {
     chosen = id;
@@ -95,6 +91,7 @@
         <div class="row spread"><span>背景声</span><Seg items={[['off', '关'], ['brown', '棕噪音'], ['white', '白噪音'], ['rain', '雨声']]} value={cfg.Noise} onpick={(v) => pomo((p) => (p.Noise = v as typeof cfg.Noise))} /></div>
         <div class="row spread"><span>严格模式<span class="hint">专注中不能暂停，只能放弃本次</span></span><Toggle on={cfg.Strict} onchange={(v) => pomo((p) => (p.Strict = v))} label="严格模式" /></div>
         <div class="row spread"><span>专注时保持屏幕常亮<span class="hint">防止电脑休眠或熄屏</span></span><Toggle on={app.state.Settings.KeepAwake !== false} onchange={(v) => update((s) => (s.Settings.KeepAwake = v))} label="防休眠" /></div>
+        <div class="row spread"><span>全屏背景图自动轮换<span class="hint">也可以在全屏里手动切换；每次打开都会换一张</span></span><Seg items={[['5', '5 小时'], ['1', '1 小时'], ['0.25', '15 分钟'], ['0', '仅手动']]} value={String(app.state.Settings.SceneHours ?? 5)} onpick={(v) => update((s) => (s.Settings.SceneHours = Number(v)))} /></div>
         <div class="row spread"><span>开始时进入全屏</span><Toggle on={cfg.Fullscreen} onchange={(v) => pomo((p) => (p.Fullscreen = v))} label="开始时全屏" /></div>
       </div>
     {:else}

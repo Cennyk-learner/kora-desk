@@ -147,7 +147,6 @@ function syncAwake(): void {
     awakeOn = want;
     void backend.call('keep_awake', { on: want });
   }
-  if (f.Mode === 'idle' && app.fullscreen) app.fullscreen = false;
 }
 
 /** Yesterday's (and any missed days') unfinished tasks become give-up records. */
