@@ -4,6 +4,7 @@ import { setMotion } from './fx';
 import { addKey, key, today as todayOf } from './dates';
 import { doneIndex, forDay, newId, setDone, withDefaults } from './model';
 import { cancelLeave, setLeave } from './leave';
+import { cancelSkip, setSkip, skipOf, skippedIds } from './skip';
 import { cancelReviews, scheduleReviews } from './review';
 import type { Journal, Page, State, Task } from './types';
 
@@ -111,9 +112,28 @@ export async function init(label: 'main' | 'widget'): Promise<void> {
 
 /* ---------- tasks ---------- */
 
+/** Tasks that count for the day: planned per-task leave is excluded (see skippedFor). */
 export function tasksFor(k: string): Task[] {
   const [y, m, d] = k.split('-').map(Number);
-  return forDay(app.state, new Date(y, m - 1, d));
+  const skipped = skippedIds(app.state, k);
+  return forDay(app.state, new Date(y, m - 1, d)).filter((t) => !skipped.has(t.Id));
+}
+
+export function skippedFor(k: string): { task: Task; reason: string }[] {
+  const [y, m, d] = k.split('-').map(Number);
+  const due = forDay(app.state, new Date(y, m - 1, d));
+  return due.flatMap((t) => {
+    const x = skipOf(app.state, t.Id, k);
+    return x ? [{ task: t, reason: x.reason }] : [];
+  });
+}
+
+export function skipTask(task: Task, date: string, reason: string): Promise<void> {
+  return update((s) => setSkip(s, task, date, reason));
+}
+
+export function unskipTask(taskId: string, date: string): Promise<void> {
+  return update((s) => cancelSkip(s, taskId, date));
 }
 
 export function isDoneOn(t: Task, k: string): boolean {

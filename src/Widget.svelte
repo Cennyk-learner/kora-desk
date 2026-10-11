@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { app, isDoneOn, tasksFor } from './lib/app.svelte';
+  import { app, isDoneOn, skippedFor, tasksFor } from './lib/app.svelte';
   import * as backend from './lib/backend';
   import { checkTask } from './lib/feedback';
   import { examInfo, examText } from './lib/exam';
@@ -20,6 +20,7 @@
   const tasks = $derived(tasksFor(day));
   const done = $derived(tasks.filter((t) => isDoneOn(t, day)).length);
   const groups = $derived(groupBy(tasks, (t) => t.Group));
+  const skipCount = $derived(skippedFor(day).length);
   const f = $derived(app.state.Focus);
   const exam = $derived(examInfo(app.state.Exam, day));
   const streak = $derived(computeStreak(app.state, day));
@@ -99,6 +100,7 @@
     {/each}
   </div>
 
+  {#if skipCount}<div class="faint" style="font-size:11px;margin:6px 2px 0">🌿 {skipCount} 项已请假</div>{/if}
   <div class="w-quote"><QuoteCard compact /></div>
 
   <div class="w-foot">

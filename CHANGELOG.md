@@ -9,6 +9,8 @@
 - The old .NET 1.x source was removed from the tree (it remains in git history and the 1.x releases).
 
 ### New
+- Give-up tolerance: a day with at least 80% of its tasks done (configurable) is not recorded as a give-up.
+- Per-task leave: a planned, reasoned skip of one task for one day. It leaves the day's completion rate and the give-up bank, and is listed separately on the give-up page.
 - Full-screen focus: an immersive view with 100 slowly cross-fading 4K photographs (mostly Iceland, plus Nordic, Italian, Indonesian, New Zealand and Australian nature, and US city skylines), captioned with place and photographer. They change every 5 hours by default (configurable, or manual only), can be switched by hand, and each opening starts on a different one (a persistent shuffle bag); start/pause/stop from inside, exit with the button or Esc. Photos are from Wikimedia Commons under their original licences (docs/IMAGE_CREDITS.md).
 - Check-off feedback: animated tick, smooth progress, rolling numbers, confetti, a rising-pitch combo scale, and a day-complete celebration. All sounds are synthesised; mute, volume and reduced-motion are respected.
 - Pomodoro: all choices (durations, task, auto-check, noise, strict, keep-awake, full-screen) are made on the focus page before starting. Full-screen focus and sleep prevention while a block runs. Restart-safe timing, widget mini timer, tray countdown, notifications and global shortcuts.

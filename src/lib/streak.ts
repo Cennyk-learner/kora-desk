@@ -1,6 +1,7 @@
 import { addKey, daysBetween, key, monthOf, parse } from './dates';
 import { doneIndex, dueOnKey } from './model';
 import { leaveOn } from './leave';
+import { skippedIds } from './skip';
 import type { State } from './types';
 
 export interface DayInfo {
@@ -11,10 +12,11 @@ export interface DayInfo {
 export function dayInfo(s: State, k: string): DayInfo {
   if (leaveOn(s, k)) return { due: 0, done: 0 };
   const ids = doneIndex(s).get(k);
+  const skipped = skippedIds(s, k);
   let due = 0;
   let done = 0;
   for (const t of s.Tasks) {
-    if (!dueOnKey(t, k)) continue;
+    if (!dueOnKey(t, k) || skipped.has(t.Id)) continue;
     due++;
     if (ids?.has(t.Id)) done++;
   }

@@ -4,6 +4,8 @@ import { addKey } from './dates';
 import { giveupStats, projectionText } from './giveup';
 import { cancelLeave, leaveWarning, leavesInWeek, setLeave, warnedWeeks } from './leave';
 import { settleDays } from './settle';
+import { cancelSkip, setSkip, skipOf } from './skip';
+import { dayInfo } from './streak';
 import { withDefaults, setDone } from './model';
 import { computeStreak } from './streak';
 import { idle, interrupt, pause, resume, settle, startFocus, leftMs } from './pomodoro';
@@ -159,6 +161,39 @@ describe('daily settlement', () => {
     const s = mk([{}]);
     expect(settleDays(s, '2026-03-10')).toBe(0);
     expect(s.Settled).toBe('2026-03-09');
+  });
+});
+
+describe('tolerance and task leave', () => {
+  const five = () => mk([{}, {}, {}, {}, {}]);
+  it('a day with 80% done is not a give-up; 60% is', () => {
+    const s = five();
+    s.Settled = '2026-03-01';
+    for (const id of ['t0', 't1', 't2', 't3']) setDone(s, id, '2026-03-02', true); // 4/5 = 80%
+    for (const id of ['t0', 't1', 't2']) setDone(s, id, '2026-03-03', true); // 3/5 = 60%
+    expect(settleDays(s, '2026-03-04')).toBe(1);
+    expect(s.Giveups.map((g) => g.date)).toEqual(['2026-03-03']);
+  });
+  it('tolerance is configurable', () => {
+    const s = five();
+    s.Settings.Tolerance = 100;
+    s.Settled = '2026-03-01';
+    for (const id of ['t0', 't1', 't2', 't3']) setDone(s, id, '2026-03-02', true);
+    expect(settleDays(s, '2026-03-03')).toBe(1);
+  });
+  it('a task on leave is neither done nor missed and is recorded separately', () => {
+    const s = mk([{ Title: 'a' }, { Title: 'b' }]);
+    s.Settings.Tolerance = 100;
+    s.Settled = '2026-03-01';
+    setDone(s, 't0', '2026-03-02', true);
+    setSkip(s, s.Tasks[1], '2026-03-02', '考试周');
+    expect(dayInfo(s, '2026-03-02')).toEqual({ due: 1, done: 1 });
+    expect(settleDays(s, '2026-03-03')).toBe(0);
+    expect(giveupStats(s).count).toBe(0);
+    expect(s.Skips).toHaveLength(1);
+    expect(skipOf(s, 't1', '2026-03-02')?.reason).toBe('考试周');
+    cancelSkip(s, 't1', '2026-03-02');
+    expect(dayInfo(s, '2026-03-02')).toEqual({ due: 2, done: 1 });
   });
 });
 

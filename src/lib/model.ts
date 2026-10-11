@@ -26,6 +26,8 @@ export function withDefaults(s: State): State {
   s.Ach ??= {};
   s.Rewards ??= [];
   s.Leaves ??= [];
+  s.Skips ??= [];
+  s.Settings.Tolerance ??= 80;
   s.Settled ??= '';
   s.Settings.KeepAwake ??= true;
   return s;

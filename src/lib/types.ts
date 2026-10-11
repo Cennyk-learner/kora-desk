@@ -54,6 +54,8 @@ export interface Prefs {
   KeepAwake?: boolean;
   /** Hours between automatic photo changes in full-screen focus (0 = manual only). */
   SceneHours?: number;
+  /** A day counts as met when at least this percent of its tasks are done: the rest is not recorded as a give-up (default 80). */
+  Tolerance?: number;
 }
 
 export interface BagState {
@@ -75,6 +77,15 @@ export interface Giveup {
 
 export interface Leave {
   date: string;
+  reason: string;
+  ts: number;
+}
+
+/** A planned, per-task leave for one day (not counted as giving up). */
+export interface Skip {
+  date: string;
+  taskId: string;
+  title: string;
   reason: string;
   ts: number;
 }
@@ -138,6 +149,7 @@ export interface State {
   Ach: Record<string, string>;
   Rewards: Reward[];
   Leaves: Leave[];
+  Skips: Skip[];
   /** Last date (inclusive) whose unfinished tasks were settled into the give-up bank. */
   Settled: string;
 }

@@ -147,6 +147,9 @@
     <div class="row spread"><span>每日喝水目标</span><div class="row" style="gap:8px"><input type="number" value={care.WaterGoal} onchange={(e) => pref((p) => (p.Care!.WaterGoal = num(e, 1, 20, 8)))} />杯</div></div>
   </div>
 
+  <h2 class="sec">放弃判定</h2>
+  <div class="card row spread"><span>完成达到多少算“达标”<span class="hint">达标的一天，剩下的任务不会记入放弃库（也不影响请假）</span></span><div class="row" style="gap:8px"><input type="number" min="50" max="100" value={st.Tolerance ?? 80} onchange={(e) => pref((p) => (p.Tolerance = num(e, 50, 100, 80)))} />%</div></div>
+
   <h2 class="sec">连续打卡</h2>
   <div class="card row spread"><span>每月冻结卡<span class="hint">漏做一天时自动使用，保住连续天数</span></span><div class="row" style="gap:8px"><input type="number" value={st.FreezePerMonth ?? 2} onchange={(e) => pref((p) => (p.FreezePerMonth = num(e, 0, 10, 2)))} />次</div></div>
 
